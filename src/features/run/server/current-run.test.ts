@@ -4,7 +4,7 @@ import { createTestDatabaseUrl } from "../../../../test/db";
 let getCurrentRun: typeof import("./current-run").getCurrentRun;
 
 beforeAll(async () => {
-  process.env.DATABASE_URL = createTestDatabaseUrl(); // BD vacía: aún no existe ninguna run
+  process.env.DATABASE_URL = await createTestDatabaseUrl(); // BD vacía: aún no existe ninguna run
   ({ getCurrentRun } = await import("./current-run"));
 });
 

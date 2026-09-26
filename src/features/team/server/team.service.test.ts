@@ -11,7 +11,7 @@ let team: typeof import("./team.service");
 let run: typeof import("@/features/run");
 
 beforeAll(async () => {
-  process.env.DATABASE_URL = createTestDatabaseUrl();
+  process.env.DATABASE_URL = await createTestDatabaseUrl();
   team = await import("./team.service");
   run = await import("@/features/run");
 });

@@ -10,7 +10,7 @@ Panel web + widget de OBS (SSE) que muestra el equipo Pokémon del streamer en v
 - UI y mensajes en español. Datos Pokémon en inglés (formato Showdown). Identificadores en inglés.
 
 ## Stack
-Next 16 (App Router, React 19, Turbopack) · Tailwind v4 · Prisma 7 + SQLite (better-sqlite3) · @pkmn/dex/@pkmn/sets · zod 4 · fuse.js · dnd-kit · vitest.
+Next 16 (App Router, React 19, Turbopack) · Tailwind v4 · Prisma 7 + SQLite (adapter libsql: binarios precompilados, nunca node-gyp) · @pkmn/dex/@pkmn/sets · zod 4 · fuse.js · dnd-kit · vitest.
 Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refresh()` de `next/cache` en server actions.
 
 ## Reglas que no se rompen
