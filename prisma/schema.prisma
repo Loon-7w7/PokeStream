@@ -16,6 +16,7 @@ model Run {
   game        String   @default("")
   ruleset     String   @default("")
   isActive    Boolean  @default(true)
+  nuzlocke    Boolean  @default(false) // debilitado = muerto: no se puede revivir
   widgetToken String   @unique // token de solo lectura para la URL de OBS
 
   // Configuración visual del widget (se aplica en vivo)
@@ -23,7 +24,6 @@ model Run {
   opacity      Int     @default(75) // 0-100 opacidad del fondo de las tarjetas
   scale        Int     @default(100) // 80-150 %
   gap          Int     @default(12) // px entre tarjetas
-  showHp       Boolean @default(true)
   showNickname Boolean @default(true)
   showLevel    Boolean @default(true)
   showTypes    Boolean @default(true)
@@ -46,8 +46,6 @@ model Slot {
   species   String  @default("")
   nickname  String  @default("")
   level     Int     @default(50)
-  hpCurrent Int     @default(0)
-  hpMax     Int     @default(0)
   ability   String  @default("")
   item      String  @default("")
   nature    String  @default("")

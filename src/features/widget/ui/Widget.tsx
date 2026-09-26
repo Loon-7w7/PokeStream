@@ -1,8 +1,7 @@
 "use client";
 // Widget de OBS: fondo transparente, 1920x1080. Solo pinta lo que llega por SSE (sin lógica de negocio).
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { cx } from "@/core/ui/cx";
-import { hpColor, hpPercent } from "@/core/ui/pokemon";
 import { Sprite } from "@/core/ui/Sprite";
 import { TypeBadge } from "@/core/ui/TypeBadge";
 import type { WidgetConfig } from "@/features/run/types";
@@ -42,16 +41,7 @@ function HudBottom({ state, spritesBase }: { state: WidgetState; spritesBase: st
 }
 
 function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: WidgetConfig; spritesBase: string }) {
-  // Animación de golpe cuando bajan los PS
-  const prevHp = useRef(slot.hpCurrent);
-  const [hitKey, setHitKey] = useState(0);
-  useEffect(() => {
-    if (slot.hpCurrent < prevHp.current) setHitKey((k) => k + 1);
-    prevHp.current = slot.hpCurrent;
-  }, [slot.hpCurrent]);
-
   const title = config.showNickname && slot.nickname ? slot.nickname : slot.speciesName;
-  const pct = hpPercent(slot.hpCurrent, slot.hpMax);
 
   return (
     <div
@@ -72,29 +62,12 @@ function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: W
         )}
       </div>
 
-      <div key={hitKey} className={cx("my-1 flex h-[110px] items-center justify-center", hitKey > 0 && "anim-hit")}>
+      <div className="my-1 flex h-[110px] items-center justify-center">
         <Sprite base={spritesBase} spriteId={slot.spriteId} shiny={slot.shiny} animated={config.animated} alt={slot.speciesName} className="max-h-[110px] max-w-[200px]" />
         {slot.fainted && (
           <span className="absolute right-3 top-14 rounded bg-bad/90 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">DEBILITADO</span>
         )}
       </div>
-
-      {config.showHp && (
-        <div>
-          <div className="mb-1 flex justify-between font-mono text-xs">
-            <span className="text-muted">PS</span>
-            <span>
-              {slot.hpCurrent}/{slot.hpMax}
-            </span>
-          </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full transition-[width,background-color] duration-700 ease-out"
-              style={{ width: `${pct}%`, background: hpColor(slot.hpCurrent, slot.hpMax) }}
-            />
-          </div>
-        </div>
-      )}
 
       {config.showTypes && (
         <div className="mt-2 flex gap-1.5">

@@ -33,12 +33,9 @@ export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onCl
       const t = Object.fromEntries(STATS.map(([k]) => [k, Number(f.get(`${prefix}-${k}`)) || 0])) as StatsTable;
       return Object.values(t).every((v) => v === def) ? null : t;
     };
-    // Si solo cambió el nivel, el servidor recalcula los PS máximos
-    const levelOnly = num("level") !== slot.level && num("hpMax") === slot.hpMax && num("hpCurrent") === slot.hpCurrent;
     onSave({
       nickname: str("nickname"),
       level: num("level"),
-      ...(levelOnly ? {} : { hpCurrent: num("hpCurrent"), hpMax: num("hpMax") }),
       ability: str("ability"),
       item: str("item"),
       nature: str("nature"),
@@ -66,12 +63,6 @@ export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onCl
               <option value="M">Macho</option>
               <option value="F">Hembra</option>
             </select>
-          </Field>
-          <Field label="PS actuales">
-            <input name="hpCurrent" type="number" min={0} defaultValue={slot.hpCurrent} className={input} />
-          </Field>
-          <Field label="PS máximos">
-            <input name="hpMax" type="number" min={1} defaultValue={slot.hpMax} className={input} />
           </Field>
           <Field label="Naturaleza">
             <input name="nature" list="dl-natures" defaultValue={slot.natureName} className={input} />

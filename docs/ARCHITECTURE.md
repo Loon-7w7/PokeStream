@@ -66,7 +66,7 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 8. **Toda** escritura pasa por `mutateRun()` (`features/run/server/unit-of-work.ts`), que:
    exige admin → resuelve la run → ejecuta en **una transacción** junto con el historial → publica el evento de tiempo real **después** del commit.
 9. Los repositorios reciben `db` como **último** parámetro (por defecto el cliente global). Dentro de `mutateRun` se les pasa la transacción.
-10. Las reglas de negocio (PS, debilitado, evolución, orden…) viven en `domain/` como funciones puras que devuelven `{ slot, message }`. Se testean sin BD.
+10. Las reglas de negocio (debilitado/Nuzlocke, evolución, orden…) viven en `domain/` como funciones puras que devuelven `{ slot, message }`. Se testean sin BD.
 
 ### Server actions
 11. Una action hace exactamente: **validar con zod → llamar a un caso de uso → devolver `ActionResult`** vía `runAction()`. Sin lógica.

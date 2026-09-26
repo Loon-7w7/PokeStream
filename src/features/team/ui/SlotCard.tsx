@@ -1,11 +1,10 @@
 "use client";
-// Tarjeta de un slot: reemplazo rápido, PS, evolución, debilitado y menú.
+// Tarjeta de un slot: reemplazo rápido, evolución, debilitado y menú.
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAction } from "@/core/ui/actions";
 import { cx } from "@/core/ui/cx";
-import { hpColor, hpPercent } from "@/core/ui/pokemon";
 import { Sprite } from "@/core/ui/Sprite";
 import { TypeBadge } from "@/core/ui/TypeBadge";
 import * as A from "../actions";
@@ -15,6 +14,8 @@ export interface SlotCardProps {
   id: string;
   slot: SlotView;
   selected: boolean;
+  /** Modo Nuzlocke: un debilitado queda muerto y no se puede revivir. */
+  nuzlocke: boolean;
   spritesBase: string;
   onSelect: () => void;
   onReplace: () => void;
@@ -51,21 +52,11 @@ export function SlotCard(props: SlotCardProps) {
           ⠿
         </button>
         <span className="font-mono">#{slot.position + 1}</span>
-        {slot.species && (
-          <label className="ml-auto flex cursor-pointer items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-            <input
-              type="checkbox"
-              checked={slot.fainted}
-              onChange={(e) => props.onPatch({ fainted: e.target.checked })}
-              className="accent-bad"
-            />
-            Debilitado
-          </label>
-        )}
+        {slot.species && <FaintButton fainted={slot.fainted} nuzlocke={props.nuzlocke} onPatch={props.onPatch} />}
       </div>
 
       {slot.species ? (
-        <Filled slot={slot} spritesBase={props.spritesBase} onPatch={props.onPatch} />
+        <Filled slot={slot} spritesBase={props.spritesBase} />
       ) : (
         <div className="grid min-h-[190px] place-items-center rounded-xl border border-dashed border-line text-sm text-muted">
           Slot vacío
@@ -89,7 +80,7 @@ export function SlotCard(props: SlotCardProps) {
   );
 }
 
-function Filled({ slot, spritesBase, onPatch }: { slot: SlotView; spritesBase: string; onPatch: (p: SlotPatch) => void }) {
+function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) {
   const { run } = useAction();
   return (
     <>
@@ -124,8 +115,6 @@ function Filled({ slot, spritesBase, onPatch }: { slot: SlotView; spritesBase: s
         </div>
       </div>
 
-      <HpControl slot={slot} onPatch={onPatch} />
-
       {slot.moveNames.length > 0 && (
         <ul className="mt-3 grid grid-cols-2 gap-1 text-xs">
           {slot.moveNames.map((m, i) => (
@@ -154,54 +143,27 @@ function Filled({ slot, spritesBase, onPatch }: { slot: SlotView; spritesBase: s
   );
 }
 
-function HpControl({ slot, onPatch }: { slot: SlotView; onPatch: (p: SlotPatch) => void }) {
-  const { run } = useAction();
-  const [step, setStep] = useState(10);
-  const pct = hpPercent(slot.hpCurrent, slot.hpMax);
+/** Debilitar / revivir. En Nuzlocke, un debilitado queda muerto (sin botón para revivir). */
+function FaintButton({ fainted, nuzlocke, onPatch }: { fainted: boolean; nuzlocke: boolean; onPatch: (p: SlotPatch) => void }) {
+  const base = "ml-auto rounded-md border px-2 py-0.5 font-semibold";
+  if (fainted && nuzlocke) {
+    return (
+      <span title="Modo Nuzlocke: no puede revivir" className={cx(base, "border-bad/60 bg-bad/15 text-bad")}>
+        💀 Muerto
+      </span>
+    );
+  }
   return (
-    <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-      <div className="mb-1 flex items-center justify-between font-mono text-xs">
-        <span className="text-muted">PS</span>
-        <span className="flex items-center gap-1">
-          <input
-            key={slot.hpCurrent}
-            type="number"
-            defaultValue={slot.hpCurrent}
-            min={0}
-            max={slot.hpMax}
-            aria-label="PS actuales"
-            onBlur={(e) => {
-              const v = Math.round(Number(e.currentTarget.value));
-              if (Number.isFinite(v) && v !== slot.hpCurrent) onPatch({ hpCurrent: Math.max(0, v) });
-            }}
-            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-            className="w-14 rounded border border-transparent bg-transparent text-right outline-none hover:border-line focus:border-accent"
-          />
-          / {slot.hpMax} <span className="text-muted">({pct}%)</span>
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: hpColor(slot.hpCurrent, slot.hpMax) }} />
-      </div>
-      <div className="mt-2 flex items-center gap-1.5 text-xs">
-        <button onClick={() => run(() => A.adjustHp(slot.position, -step))} className="rounded-md border border-line px-2 py-0.5 hover:border-bad hover:text-bad">
-          −{step}
-        </button>
-        <button onClick={() => run(() => A.adjustHp(slot.position, step))} className="rounded-md border border-line px-2 py-0.5 hover:border-ok hover:text-ok">
-          +{step}
-        </button>
-        <select value={step} onChange={(e) => setStep(Number(e.target.value))} aria-label="Cantidad" className="rounded-md border border-line bg-card px-1 py-0.5">
-          {[1, 5, 10, 25, 50].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-        <button onClick={() => onPatch({ hpCurrent: slot.hpMax, fainted: false })} className="ml-auto rounded-md border border-line px-2 py-0.5 hover:border-ok hover:text-ok">
-          Curar
-        </button>
-      </div>
-    </div>
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onPatch({ fainted: !fainted });
+      }}
+      title={fainted ? "Volver al combate" : nuzlocke ? "Nuzlocke: no se podrá revivir" : "Marcar como debilitado"}
+      className={cx(base, fainted ? "border-bad/60 bg-bad/15 text-bad hover:border-ok hover:bg-transparent hover:text-ok" : "border-line hover:border-bad hover:text-bad")}
+    >
+      {fainted ? "Debilitado · Revivir" : "Debilitar"}
+    </button>
   );
 }
 

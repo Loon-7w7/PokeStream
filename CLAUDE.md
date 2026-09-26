@@ -36,12 +36,12 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
 | `features/auth` | `requireAdmin`, `verifyToken`, login/logout, `LoginForm` |
-| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun`, info, config del widget, historial, `RunHeader`, `HistoryList` |
-| `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (PS/debilitado/nivel), `heal`, `validateOrder` |
+| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info, config del widget, historial, `RunHeader`, `HistoryList` |
+| `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado/nivel + regla Nuzlocke), `validateOrder` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts` |
 | `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog` |
 | `features/showdown` | Exportar/importar; `ShowdownBox`, `CopySlotButton` |
-| `features/widget` | Contrato `WidgetState` (v1), stream SSE, `Widget` (OBS), `WidgetSettings` (panel) |
+| `features/widget` | Contrato `WidgetState` (v2), stream SSE, `Widget` (OBS), `WidgetSettings` (panel) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |
 

@@ -1,4 +1,4 @@
-// Presentación de datos Pokémon (colores/nombres de tipos, barra de PS). Puro.
+// Presentación de datos Pokémon (colores/nombres de tipos). Puro.
 
 export const TYPE_COLORS: Record<string, string> = {
   Normal: "#9fa19f", Fire: "#e62829", Water: "#2980ef", Electric: "#fac000", Grass: "#3fa129",
@@ -13,13 +13,3 @@ export const TYPE_ES: Record<string, string> = {
   Psychic: "Psíquico", Bug: "Bicho", Rock: "Roca", Ghost: "Fantasma", Dragon: "Dragón",
   Dark: "Siniestro", Steel: "Acero", Fairy: "Hada", Stellar: "Astral",
 };
-
-export const hpPercent = (current: number, max: number) =>
-  max ? Math.max(0, Math.min(100, Math.round((current / max) * 100))) : 0;
-
-export function hpColor(current: number, max: number): string {
-  const r = max ? current / max : 0;
-  if (r > 0.5) return "var(--color-ok)";
-  if (r > 0.2) return "var(--color-warn)";
-  return "var(--color-bad)";
-}

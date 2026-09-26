@@ -35,7 +35,6 @@ export function toWidgetConfig(row: RunRow): WidgetConfig {
     opacity: row.opacity,
     scale: row.scale,
     gap: row.gap,
-    showHp: row.showHp,
     showNickname: row.showNickname,
     showLevel: row.showLevel,
     showTypes: row.showTypes,
@@ -44,4 +43,4 @@ export function toWidgetConfig(row: RunRow): WidgetConfig {
   };
 }
 
-export const toRunInfo = (row: RunRow): RunInfo => ({ title: row.title, game: row.game, ruleset: row.ruleset });
+export const toRunInfo = (row: RunRow): RunInfo => ({ title: row.title, game: row.game, ruleset: row.ruleset, nuzlocke: row.nuzlocke });

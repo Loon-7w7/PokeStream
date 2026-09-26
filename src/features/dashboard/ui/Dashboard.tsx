@@ -21,6 +21,7 @@ export function Dashboard({ state }: { state: DashboardState }) {
           <TeamSection
             slots={state.team}
             spritesBase={state.spritesBase}
+            nuzlocke={state.run.info.nuzlocke}
             renderMenuExtras={(slot) => <CopySlotButton position={slot.position} />}
           />
           <aside className="flex flex-col gap-5">

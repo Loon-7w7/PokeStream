@@ -9,6 +9,8 @@ export interface MutationContext {
   /** Transacción: pásala como último argumento a los repositorios. */
   db: Db;
   runId: string;
+  /** Reglas de la run que condicionan las mutaciones. */
+  nuzlocke: boolean;
   /** Registra una línea de historial (se guarda en la misma transacción). */
   log: (message: string) => void;
 }
@@ -25,7 +27,7 @@ export async function mutateRun<T>(fn: (ctx: MutationContext) => Promise<T>): Pr
   const run = await getCurrentRun();
   const logs: string[] = [];
   const result = await prisma.$transaction(async (db) => {
-    const value = await fn({ db, runId: run.id, log: (m) => logs.push(m) });
+    const value = await fn({ db, runId: run.id, nuzlocke: run.nuzlocke, log: (m) => logs.push(m) });
     await addHistory(run.id, logs, db);
     return value;
   });

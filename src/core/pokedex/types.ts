@@ -10,7 +10,6 @@ export type Gender = "" | "M" | "F";
 export interface SpeciesInfo {
   id: string;
   name: string;
-  baseHp: number;
   abilityIds: string[];
   defaultAbilityId: string;
 }

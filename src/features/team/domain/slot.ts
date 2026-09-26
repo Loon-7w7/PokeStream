@@ -11,8 +11,6 @@ export const emptySlot = (position: number): SlotData => ({
   species: "",
   nickname: "",
   level: DEFAULT_LEVEL,
-  hpCurrent: 0,
-  hpMax: 0,
   ability: "",
   item: "",
   nature: "",
@@ -30,12 +28,6 @@ export interface Change {
   message: string;
 }
 
-/** PS máximos con 31 IVs / 0 EVs (fórmula Gen 3+). Shedinja (base 1) siempre 1. */
-export function calcMaxHp(baseHp: number, level: number): number {
-  if (baseHp === 1) return 1;
-  return Math.floor(((2 * baseHp + 31) * level) / 100) + level + 10;
-}
-
 export const clampLevel = (n: number) => Math.min(100, Math.max(1, Math.round(n) || 1));
 
 /** Nombre para mostrar en el historial: mote o especie. */
@@ -43,14 +35,10 @@ export const slotLabel = (slot: SlotData, speciesName: string) => slot.nickname 
 
 /** Reemplazo rápido: especie nueva, datos reiniciados, conserva el nivel si había Pokémon. */
 export function placeSpecies(prev: SlotData, species: SpeciesInfo, prevName: string): Change {
-  const level = prev.species ? prev.level : DEFAULT_LEVEL;
-  const hpMax = calcMaxHp(species.baseHp, level);
   const slot: SlotData = {
     ...emptySlot(prev.position),
     species: species.id,
-    level,
-    hpMax,
-    hpCurrent: hpMax,
+    level: prev.species ? prev.level : DEFAULT_LEVEL,
     ability: species.defaultAbilityId,
   };
   const message = prev.species
@@ -59,55 +47,38 @@ export function placeSpecies(prev: SlotData, species: SpeciesInfo, prevName: str
   return { slot, message };
 }
 
-/** Evolución: conserva mote, nivel, objeto y movimientos. PS escalados en proporción. */
+/** Evolución: conserva mote, nivel, objeto, movimientos y estado debilitado. */
 export function evolve(prev: SlotData, target: SpeciesInfo, prevName: string): Change {
   if (!prev.species) fail("INVALID", "El slot está vacío");
-  const hpMax = calcMaxHp(target.baseHp, prev.level);
-  const ratio = prev.hpMax ? prev.hpCurrent / prev.hpMax : 1;
   const ability = target.abilityIds.includes(prev.ability) ? prev.ability : target.defaultAbilityId;
   return {
-    slot: { ...prev, species: target.id, hpMax, hpCurrent: Math.round(hpMax * ratio), ability },
+    slot: { ...prev, species: target.id, ability },
     message: `${slotLabel(prev, prevName)} evolucionó a ${target.name}`,
   };
 }
 
-/**
- * Edición de campos con las reglas de PS / debilitado / nivel:
- * - subir de nivel sin indicar PS máx. => se recalculan (y los PS actuales suben lo mismo)
- * - PS a 0 => debilitado; curar a un debilitado => revive
- * - marcar debilitado => PS a 0; desmarcarlo (corrección) => PS al máximo
- */
-export function applyPatch(prev: SlotData, patch: SlotPatch, species: SpeciesInfo): Change {
-  if (!prev.species) fail("INVALID", "El slot está vacío");
-  const next: SlotData = { ...prev, ...patch, moves: (patch.moves ?? prev.moves).slice(0, 4) };
-
-  if (patch.level !== undefined) next.level = clampLevel(patch.level);
-  if (next.level !== prev.level && patch.hpMax === undefined) {
-    next.hpMax = calcMaxHp(species.baseHp, next.level);
-    if (patch.hpCurrent === undefined) next.hpCurrent = prev.hpCurrent + (next.hpMax - prev.hpMax);
-  }
-  next.hpMax = Math.max(1, next.hpMax);
-  next.hpCurrent = Math.min(Math.max(0, next.hpCurrent), next.hpMax);
-
-  if (patch.fainted === undefined) {
-    if (next.hpCurrent === 0) next.fainted = true;
-    else if (prev.fainted) next.fainted = false;
-  } else if (patch.hpCurrent === undefined) {
-    if (patch.fainted && !prev.fainted) next.hpCurrent = 0;
-    if (!patch.fainted && prev.fainted && prev.hpCurrent === 0) next.hpCurrent = next.hpMax;
-  }
-
-  const name = slotLabel(next, species.name);
-  let message = `${name} editado`;
-  if (next.fainted !== prev.fainted) message = next.fainted ? `${name} se debilitó` : `${name} volvió al combate`;
-  else if (next.level !== prev.level) message = `${name} subió a Nv. ${next.level}`;
-  else if (next.hpCurrent !== prev.hpCurrent) message = `${name}: PS ${prev.hpCurrent} → ${next.hpCurrent}`;
-  return { slot: next, message };
+/** Reglas de la run que afectan a la edición de un slot. */
+export interface SlotRules {
+  /** Nuzlocke: un Pokémon debilitado está muerto y no puede volver al combate. */
+  nuzlocke: boolean;
 }
 
-/** Curar a todos los no debilitados. */
-export const heal = (slot: SlotData): SlotData =>
-  slot.species && !slot.fainted ? { ...slot, hpCurrent: slot.hpMax } : slot;
+/** Edición de campos. En Nuzlocke no se puede desmarcar "debilitado". */
+export function applyPatch(prev: SlotData, patch: SlotPatch, speciesName: string, rules: SlotRules): Change {
+  if (!prev.species) fail("INVALID", "El slot está vacío");
+  if (rules.nuzlocke && prev.fainted && patch.fainted === false) {
+    fail("INVALID", "Modo Nuzlocke: un Pokémon debilitado no puede revivir");
+  }
+  const next: SlotData = { ...prev, ...patch, moves: (patch.moves ?? prev.moves).slice(0, 4) };
+  if (patch.level !== undefined) next.level = clampLevel(patch.level);
+
+  const name = slotLabel(next, speciesName);
+  let message = `${name} editado`;
+  if (next.fainted !== prev.fainted) {
+    message = next.fainted ? `${name} ${rules.nuzlocke ? "murió (Nuzlocke)" : "se debilitó"}` : `${name} volvió al combate`;
+  } else if (next.level !== prev.level) message = `${name} subió a Nv. ${next.level}`;
+  return { slot: next, message };
+}
 
 /** order[i] = posición anterior del slot que queda en i. Debe ser una permutación de 0..5. */
 export function validateOrder(order: number[]): number[] {

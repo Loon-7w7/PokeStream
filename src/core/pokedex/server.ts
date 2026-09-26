@@ -28,7 +28,6 @@ export function getSpeciesInfo(nameOrId: string): SpeciesInfo | null {
   return {
     id: s.id,
     name: s.name,
-    baseHp: s.baseStats.hp,
     abilityIds: Object.values(s.abilities)
       .filter(Boolean)
       .map((a) => Dex.abilities.get(a as string).id),

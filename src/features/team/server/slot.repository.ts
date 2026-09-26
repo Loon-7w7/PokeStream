@@ -20,8 +20,6 @@ function toSlot(row: SlotRow): SlotData {
     species: row.species,
     nickname: row.nickname,
     level: row.level,
-    hpCurrent: row.hpCurrent,
-    hpMax: row.hpMax,
     ability: row.ability,
     item: row.item,
     nature: row.nature,

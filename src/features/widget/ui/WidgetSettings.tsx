@@ -8,7 +8,6 @@ import type { WidgetConfig, WidgetConfigPatch } from "@/features/run/types";
 type BoolKey = { [K in keyof WidgetConfig]: WidgetConfig[K] extends boolean ? K : never }[keyof WidgetConfig];
 
 const TOGGLES: [BoolKey, string][] = [
-  ["showHp", "Barra de PS"],
   ["showNickname", "Motes"],
   ["showLevel", "Nivel"],
   ["showTypes", "Tipos"],

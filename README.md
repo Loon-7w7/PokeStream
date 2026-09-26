@@ -5,10 +5,10 @@ Panel web para gestionar tu equipo Pokémon en directo y un widget transparente 
 > "PartyHUD" es un nombre provisional. Cámbialo en `.env` con `APP_NAME`.
 
 ## Qué hace
-- 6 slots con mote, nivel, PS, habilidad, objeto, naturaleza, teratipo, movimientos, shiny y debilitado.
+- 6 slots con mote, nivel, habilidad, objeto, naturaleza, teratipo, movimientos, shiny y debilitado.
 - **Reemplazo rápido**: botón *Reemplazar* (o tecla `R`) → escribe el nombre → `Enter`.
 - Evolucionar con un clic, conservando mote, nivel y movimientos.
-- Arrastrar para reordenar, historial de cambios, "Curar a todos".
+- Arrastrar para reordenar, historial de cambios, modo Nuzlocke (un debilitado no puede revivir).
 - Widget para OBS (HUD inferior) que se actualiza en vivo, con opacidad, escala, espaciado y elementos configurables.
 - Exportar e importar equipos en formato **Pokémon Showdown**.
 - Sprites directos de Showdown (`SPRITES_BASE_URL`), sin descargar imágenes.

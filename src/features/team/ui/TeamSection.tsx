@@ -17,11 +17,13 @@ type Dialog = { kind: "replace" | "edit"; position: number } | null;
 export interface TeamSectionProps {
   slots: SlotView[];
   spritesBase: string;
+  /** Modo Nuzlocke de la run: un debilitado no puede revivir. */
+  nuzlocke: boolean;
   /** Opciones extra para el menú de cada tarjeta (las inyecta el dashboard). */
   renderMenuExtras?: (slot: SlotView) => React.ReactNode;
 }
 
-export function TeamSection({ slots: serverSlots, spritesBase, renderMenuExtras }: TeamSectionProps) {
+export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderMenuExtras }: TeamSectionProps) {
   const { run } = useAction();
   const [slots, applyOptimistic] = useOptimistic(serverSlots, (current: SlotView[], action: Optimistic) =>
     action.type === "reorder"
@@ -46,7 +48,7 @@ export function TeamSection({ slots: serverSlots, spritesBase, renderMenuExtras 
         e.preventDefault();
         setDialog({ kind: "replace", position: selected });
       } else if (k === "e" && slot?.species) setDialog({ kind: "edit", position: selected });
-      else if (k === "f" && slot?.species) patch(selected, { fainted: !slot.fainted });
+      else if (k === "f" && slot?.species && !(nuzlocke && slot.fainted)) patch(selected, { fainted: !slot.fainted });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -75,9 +77,6 @@ export function TeamSection({ slots: serverSlots, spritesBase, renderMenuExtras 
         <span className="text-xs text-muted">
           <Kbd>1</Kbd>–<Kbd>6</Kbd> elegir · <Kbd>R</Kbd> reemplazar · <Kbd>E</Kbd> editar · <Kbd>F</Kbd> debilitar
         </span>
-        <button onClick={() => run(A.healAll)} className="ml-auto rounded-lg border border-line px-3 py-1.5 text-sm hover:border-ok hover:text-ok">
-          Curar a todos
-        </button>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -89,6 +88,7 @@ export function TeamSection({ slots: serverSlots, spritesBase, renderMenuExtras 
                 id={ids[i]}
                 slot={s}
                 selected={selected === s.position}
+                nuzlocke={nuzlocke}
                 spritesBase={spritesBase}
                 onSelect={() => setSelected(s.position)}
                 onReplace={() => setDialog({ kind: "replace", position: s.position })}

@@ -4,8 +4,6 @@ import type { PokemonSetData, SetDisplay } from "@/core/pokedex/types";
 /** Un slot del equipo (0-5). species = "" significa vacío. Todo nombre va como ID. */
 export interface SlotData extends PokemonSetData {
   position: number;
-  hpCurrent: number;
-  hpMax: number;
   fainted: boolean;
 }
 

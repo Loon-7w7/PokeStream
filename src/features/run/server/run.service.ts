@@ -35,8 +35,9 @@ export async function isWidgetTokenValid(runId: string, token: string) {
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);
 
 export const updateRunInfo = (info: Partial<RunInfo>) =>
-  mutateRun(async ({ db, runId }) => {
+  mutateRun(async ({ db, runId, log }) => {
     await runs.updateRunInfo(runId, info, db);
+    if (info.nuzlocke !== undefined) log(info.nuzlocke ? "Modo Nuzlocke activado" : "Modo Nuzlocke desactivado");
   });
 
 export const updateWidgetConfig = (patch: WidgetConfigPatch) =>

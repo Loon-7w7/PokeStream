@@ -14,8 +14,6 @@ const SlotEdit = z
   .object({
     nickname: z.string().trim().max(24),
     level: z.number().int().min(1).max(100),
-    hpCurrent: z.number().int().min(0).max(9999),
-    hpMax: z.number().int().min(1).max(9999),
     ability: Name,
     item: Name,
     nature: Name,
@@ -44,18 +42,10 @@ export async function updateSlot(position: number, input: z.input<typeof SlotEdi
   return runAction(() => team.updateSlot(Position.parse(position), SlotEdit.parse(input)), opts);
 }
 
-export async function adjustHp(position: number, delta: number) {
-  return runAction(() => team.adjustHp(Position.parse(position), z.number().int().min(-9999).max(9999).parse(delta)), opts);
-}
-
 export async function clearSlot(position: number) {
   return runAction(() => team.clearSlot(Position.parse(position)), opts);
 }
 
 export async function reorderTeam(order: number[]) {
   return runAction(() => team.reorderTeam(z.array(Position).length(6).parse(order)), opts);
-}
-
-export async function healAll() {
-  return runAction(() => team.healAll(), opts);
 }
