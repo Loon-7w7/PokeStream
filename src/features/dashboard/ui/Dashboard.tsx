@@ -25,7 +25,7 @@ export function Dashboard({ state }: { state: DashboardState }) {
             renderMenuExtras={(slot) => <CopySlotButton position={slot.position} />}
           />
           <aside className="flex flex-col gap-5">
-            <WidgetSettings config={state.run.config} widgetToken={state.run.widgetToken} />
+            <WidgetSettings config={state.run.config} widgetToken={state.run.widgetToken} slots={state.widgetSlots} spritesBase={state.spritesBase} />
             <ShowdownBox />
             <HistoryList history={state.run.history} />
           </aside>

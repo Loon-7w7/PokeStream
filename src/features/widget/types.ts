@@ -3,7 +3,7 @@
 // pueden estar corriendo una versión anterior hasta que se recarguen).
 import type { WidgetConfig } from "@/features/run/types";
 
-export const WIDGET_CONTRACT_VERSION = 3;
+export const WIDGET_CONTRACT_VERSION = 4;
 
 export interface WidgetSlot {
   position: number;

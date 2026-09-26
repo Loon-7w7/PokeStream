@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma, type Db, type RunRow } from "@/core/db/client";
-import type { RunInfo, WidgetConfig, WidgetConfigPatch } from "../types";
+import { DEFAULT_SLOT_POSITIONS, type RunInfo, type SlotPoint, type WidgetConfig, type WidgetConfigPatch } from "../types";
 
 export type { RunRow };
 
@@ -23,15 +23,29 @@ export const findRunIdByToken = async (widgetToken: string, db: Db = prisma) =>
 export const updateRunInfo = (id: string, info: Partial<RunInfo>, db: Db = prisma) =>
   db.run.update({ where: { id }, data: info });
 
-export const updateWidgetConfig = (id: string, patch: WidgetConfigPatch, db: Db = prisma) =>
-  db.run.update({ where: { id }, data: patch });
+export function updateWidgetConfig(id: string, patch: WidgetConfigPatch, db: Db = prisma) {
+  const { slotPositions, ...rest } = patch;
+  return db.run.update({ where: { id }, data: { ...rest, ...(slotPositions && { slotPositions: JSON.stringify(slotPositions) }) } });
+}
 
 export const updateWidgetToken = (id: string, widgetToken: string, db: Db = prisma) =>
   db.run.update({ where: { id }, data: { widgetToken } });
 
+/** JSON guardado -> 6 puntos válidos; si falta o está corrupto, las posiciones por defecto. */
+function parsePositions(json: string): SlotPoint[] {
+  try {
+    const list = json ? (JSON.parse(json) as SlotPoint[]) : [];
+    const valid = Array.isArray(list) && list.length === 6 && list.every((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y));
+    return valid ? list.map(({ x, y }) => ({ x, y })) : DEFAULT_SLOT_POSITIONS;
+  } catch {
+    return DEFAULT_SLOT_POSITIONS;
+  }
+}
+
 export function toWidgetConfig(row: RunRow): WidgetConfig {
   return {
-    layout: "hud-bottom",
+    layout: row.layout === "free" ? "free" : "hud-bottom",
+    slotPositions: parsePositions(row.slotPositions),
     opacity: row.opacity,
     scale: row.scale,
     gap: row.gap,

@@ -4,7 +4,7 @@ import { useEffect, useId, useState } from "react";
 import { cx } from "@/core/ui/cx";
 import { Sprite } from "@/core/ui/Sprite";
 import { TypeBadge } from "@/core/ui/TypeBadge";
-import type { WidgetConfig } from "@/features/run/types";
+import type { SlotPoint, WidgetConfig } from "@/features/run/types";
 import type { WidgetSlot, WidgetState } from "../types";
 
 export function Widget({ token, initial, spritesBase }: { token: string; initial: WidgetState; spritesBase: string }) {
@@ -21,8 +21,7 @@ export function Widget({ token, initial, spritesBase }: { token: string; initial
   }, [token]);
 
   if (!state) return null;
-  // Aquí se elegirán otros layouts (torre lateral, burbujas) según state.config.layout
-  return <HudBottom state={state} spritesBase={spritesBase} />;
+  return state.config.layout === "free" ? <FreeLayout state={state} spritesBase={spritesBase} /> : <HudBottom state={state} spritesBase={spritesBase} />;
 }
 
 /** Layout "HUD inferior": fila de tarjetas centrada abajo. */
@@ -40,7 +39,30 @@ function HudBottom({ state, spritesBase }: { state: WidgetState; spritesBase: st
   );
 }
 
-function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: WidgetConfig; spritesBase: string }) {
+/** Layout "libre": cada slot centrado en su posición guardada (lienzo 1920x1080). */
+function FreeLayout({ state, spritesBase }: { state: WidgetState; spritesBase: string }) {
+  const { config, slots } = state;
+  return (
+    <div className="fixed inset-0 overflow-hidden">
+      {slots.map((s) => (
+        <PlacedSlot key={`${s.position}-${s.speciesName}`} point={config.slotPositions[s.position]} scale={config.scale}>
+          <WidgetCard slot={s} config={config} spritesBase={spritesBase} />
+        </PlacedSlot>
+      ))}
+    </div>
+  );
+}
+
+/** Coloca un slot con su centro en `point`, escalado alrededor del centro. */
+export function PlacedSlot({ point, scale, children, ...rest }: { point: SlotPoint; scale: number } & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div {...rest} className={cx("absolute", rest.className)} style={{ left: point.x, top: point.y, transform: `translate(-50%, -50%) scale(${scale / 100})` }}>
+      {children}
+    </div>
+  );
+}
+
+export function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: WidgetConfig; spritesBase: string }) {
   const title = config.showNickname && slot.nickname ? slot.nickname : slot.speciesName;
 
   return (

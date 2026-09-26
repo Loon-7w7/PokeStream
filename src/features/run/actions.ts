@@ -11,8 +11,12 @@ export async function updateRunInfo(input: z.input<typeof RunInfoInput>) {
   return runAction(() => service.updateRunInfo(RunInfoInput.parse(input)), { refresh: true });
 }
 
+const Point = z.object({ x: z.number().int().min(0).max(1920), y: z.number().int().min(0).max(1080) });
+
 const WidgetConfigInput = z
   .object({
+    layout: z.enum(["hud-bottom", "free"]),
+    slotPositions: z.array(Point).length(6),
     opacity: z.number().int().min(0).max(100),
     scale: z.number().int().min(50).max(150),
     gap: z.number().int().min(0).max(64),

@@ -3,7 +3,10 @@
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
 import { regenerateWidgetToken, updateWidgetConfig } from "@/features/run/actions";
-import type { WidgetConfig, WidgetConfigPatch } from "@/features/run/types";
+import type { WidgetConfig, WidgetConfigPatch, WidgetLayout } from "@/features/run/types";
+import { cx } from "@/core/ui/cx";
+import type { WidgetSlot } from "../types";
+import { PositionEditor } from "./PositionEditor";
 
 type BoolKey = { [K in keyof WidgetConfig]: WidgetConfig[K] extends boolean ? K : never }[keyof WidgetConfig];
 
@@ -14,13 +17,20 @@ const TOGGLES: [BoolKey, string][] = [
   ["animated", "Sprites animados"],
 ];
 
+const LAYOUTS: [WidgetLayout, string][] = [
+  ["hud-bottom", "Fila abajo"],
+  ["free", "Posición libre"],
+];
+
 const noopSubscribe = () => () => {};
 
-export function WidgetSettings({ config: serverConfig, widgetToken }: { config: WidgetConfig; widgetToken: string }) {
+export function WidgetSettings(props: { config: WidgetConfig; widgetToken: string; slots: WidgetSlot[]; spritesBase: string }) {
+  const { config: serverConfig, widgetToken } = props;
   const { run } = useAction();
   const [config, applyOptimistic] = useOptimistic(serverConfig, (c: WidgetConfig, p: WidgetConfigPatch) => ({ ...c, ...p }));
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
   const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
   const url = `${origin}/widget/${widgetToken}`;
 
   const save = (patch: WidgetConfigPatch) => run(() => updateWidgetConfig(patch), () => applyOptimistic(patch));
@@ -54,10 +64,33 @@ export function WidgetSettings({ config: serverConfig, widgetToken }: { config: 
 
       <Preview url={origin ? url : ""} />
 
+      <div className="mt-4 grid gap-2">
+        <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="radiogroup" aria-label="Distribución">
+          {LAYOUTS.map(([value, label]) => (
+            <button
+              key={value}
+              role="radio"
+              aria-checked={config.layout === value}
+              onClick={() => config.layout !== value && save({ layout: value })}
+              className={cx("rounded-md py-1.5", config.layout === value ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {config.layout === "free" && (
+          <button onClick={() => setEditing(true)} className="rounded-lg border border-accent/60 py-2 text-sm font-semibold text-accent hover:bg-accent/10">
+            ✥ Editar posiciones
+          </button>
+        )}
+      </div>
+
       <div className="mt-4 grid gap-3">
         <Slider key={`o${config.opacity}`} label="Opacidad del fondo" value={config.opacity} min={0} max={100} unit="%" onCommit={(v) => save({ opacity: v })} />
         <Slider key={`s${config.scale}`} label="Escala" value={config.scale} min={50} max={150} unit="%" onCommit={(v) => save({ scale: v })} />
-        <Slider key={`g${config.gap}`} label="Espacio entre tarjetas" value={config.gap} min={0} max={48} unit="px" onCommit={(v) => save({ gap: v })} />
+        {config.layout === "hud-bottom" && (
+          <Slider key={`g${config.gap}`} label="Espacio entre tarjetas" value={config.gap} min={0} max={48} unit="px" onCommit={(v) => save({ gap: v })} />
+        )}
         <Slider
           key={`p${config.pokeballOpacity}`}
           label={config.pokeballOpacity ? "Silueta de pokébola" : "Silueta de pokébola (oculta)"}
@@ -84,6 +117,16 @@ export function WidgetSettings({ config: serverConfig, widgetToken }: { config: 
       >
         Regenerar URL (si se filtró)
       </button>
+
+      {editing && (
+        <PositionEditor
+          config={config}
+          slots={props.slots}
+          spritesBase={props.spritesBase}
+          onSave={(slotPositions) => save({ slotPositions })}
+          onClose={() => setEditing(false)}
+        />
+      )}
     </div>
   );
 }

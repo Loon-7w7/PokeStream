@@ -20,7 +20,8 @@ model Run {
   widgetToken String   @unique // token de solo lectura para la URL de OBS
 
   // Configuración visual del widget (se aplica en vivo)
-  layout       String  @default("hud-bottom") // hud-bottom | (futuro) tower | bubbles
+  layout       String  @default("hud-bottom") // hud-bottom | free
+  slotPositions String @default("") // JSON: {x,y}[6] centro de cada slot en modo libre ("" = por defecto)
   opacity      Int     @default(75) // 0-100 opacidad del fondo de las tarjetas
   scale        Int     @default(100) // 80-150 %
   gap          Int     @default(12) // px entre tarjetas
