@@ -1,0 +1,75 @@
+// Esquema de la base de datos. Tras cambiarlo: npm run db:migrate -- --name <cambio>
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// Una "run" = una partida/sesión de stream (ej. "Nuzlocke Escarlata #4").
+// El MVP usa una sola run activa (isActive = true).
+model Run {
+  id          String   @id @default(cuid())
+  title       String   @default("Mi Nuzlocke")
+  game        String   @default("")
+  ruleset     String   @default("")
+  isActive    Boolean  @default(true)
+  widgetToken String   @unique // token de solo lectura para la URL de OBS
+
+  // Configuración visual del widget (se aplica en vivo)
+  layout       String  @default("hud-bottom") // hud-bottom | (futuro) tower | bubbles
+  opacity      Int     @default(75) // 0-100 opacidad del fondo de las tarjetas
+  scale        Int     @default(100) // 80-150 %
+  gap          Int     @default(12) // px entre tarjetas
+  showHp       Boolean @default(true)
+  showNickname Boolean @default(true)
+  showLevel    Boolean @default(true)
+  showTypes    Boolean @default(true)
+  faintEffect  Boolean @default(true) // escala de grises al debilitarse
+  animated     Boolean @default(true) // sprites GIF animados vs PNG estáticos
+
+  slots     Slot[]
+  history   HistoryEntry[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Siempre existen 6 slots por run (position 0-5). species vacío = slot vacío.
+// Nombres guardados como ID de Showdown/@pkmn (ej. "charizardmegax", "heavydutyboots").
+model Slot {
+  id        String  @id @default(cuid())
+  runId     String
+  run       Run     @relation(fields: [runId], references: [id], onDelete: Cascade)
+  position  Int
+  species   String  @default("")
+  nickname  String  @default("")
+  level     Int     @default(50)
+  hpCurrent Int     @default(0)
+  hpMax     Int     @default(0)
+  ability   String  @default("")
+  item      String  @default("")
+  nature    String  @default("")
+  teraType  String  @default("")
+  gender    String  @default("") // "", "M", "F"
+  shiny     Boolean @default(false)
+  fainted   Boolean @default(false)
+  moves     String  @default("[]") // JSON: string[] (máx. 4)
+  evs       String  @default("")   // JSON: StatsTable o "" si no aplica
+  ivs       String  @default("")   // JSON: StatsTable o "" si no aplica
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([runId, position])
+}
+
+model HistoryEntry {
+  id        String   @id @default(cuid())
+  runId     String
+  run       Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([runId, createdAt])
+}

@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+!.env.example
+
+# Prisma (cliente generado con `npx prisma generate`)
+/src/generated/
+
+# Base de datos SQLite local
+/data/*
+!/data/.gitkeep

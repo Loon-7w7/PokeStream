@@ -1,0 +1,5 @@
+# Finales de línea LF en el repo (evita problemas al construir en Docker desde Windows)
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.node binary

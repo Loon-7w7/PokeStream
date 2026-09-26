@@ -1,26 +1,50 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Paleta del panel (inspirada en el concepto de Stitch: oscuro + acentos neón) */
+@theme {
+  --color-bg: #0a0e16;
+  --color-panel: #111723;
+  --color-card: #161e2d;
+  --color-line: #243047;
+  --color-muted: #8391a8;
+  --color-text: #e6ebf5;
+  --color-accent: #38d0f5;
+  --color-accent-2: #ff4d6a;
+  --color-ok: #34d399;
+  --color-warn: #fbbf24;
+  --color-bad: #f43f5e;
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* El body NO tiene fondo: el widget de OBS debe ser transparente. El panel pone su propio fondo. */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: transparent;
 }
+
+@keyframes slot-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hit {
+  0%, 100% { transform: none; filter: none; }
+  20% { transform: translateX(-6px); filter: brightness(1.8) saturate(0.4); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+}
+.anim-slot-in { animation: slot-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.anim-hit { animation: hit 0.5s ease-out; }
+
+.checkerboard {
+  background-color: #1b2130;
+  background-image:
+    linear-gradient(45deg, #232a3b 25%, transparent 25%),
+    linear-gradient(-45deg, #232a3b 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #232a3b 75%),
+    linear-gradient(-45deg, transparent 75%, #232a3b 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+
+img.pixelated { image-rendering: pixelated; }

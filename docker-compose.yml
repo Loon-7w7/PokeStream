@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    container_name: partyhud
+    ports:
+      - "3000:3000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # La BD vive en un volumen de Docker (sobrevive a reconstrucciones)
+      DATABASE_URL: file:/app/data/app.db
+    volumes:
+      - partyhud-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  partyhud-data:
