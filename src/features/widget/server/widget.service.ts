@@ -17,7 +17,6 @@ export async function getWidgetState(runId: string): Promise<WidgetState | null>
         speciesName: s.speciesName,
         spriteId: s.spriteId,
         nickname: s.nickname,
-        level: s.level,
         types: s.types,
         shiny: s.shiny,
         fainted: s.fainted,

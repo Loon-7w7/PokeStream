@@ -3,14 +3,13 @@
 // pueden estar corriendo una versión anterior hasta que se recarguen).
 import type { WidgetConfig } from "@/features/run/types";
 
-export const WIDGET_CONTRACT_VERSION = 2;
+export const WIDGET_CONTRACT_VERSION = 3;
 
 export interface WidgetSlot {
   position: number;
   speciesName: string;
   spriteId: string;
   nickname: string;
-  level: number;
   types: string[];
   shiny: boolean;
   fainted: boolean;

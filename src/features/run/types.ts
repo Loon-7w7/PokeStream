@@ -14,8 +14,8 @@ export interface WidgetConfig {
   opacity: number; // 0-100
   scale: number; // 50-150 %
   gap: number; // px
+  pokeballOpacity: number; // 0-100, 0 = oculta
   showNickname: boolean;
-  showLevel: boolean;
   showTypes: boolean;
   faintEffect: boolean;
   animated: boolean;

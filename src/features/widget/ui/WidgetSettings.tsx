@@ -9,7 +9,6 @@ type BoolKey = { [K in keyof WidgetConfig]: WidgetConfig[K] extends boolean ? K 
 
 const TOGGLES: [BoolKey, string][] = [
   ["showNickname", "Motes"],
-  ["showLevel", "Nivel"],
   ["showTypes", "Tipos"],
   ["faintEffect", "Gris al debilitarse"],
   ["animated", "Sprites animados"],
@@ -59,6 +58,15 @@ export function WidgetSettings({ config: serverConfig, widgetToken }: { config: 
         <Slider key={`o${config.opacity}`} label="Opacidad del fondo" value={config.opacity} min={0} max={100} unit="%" onCommit={(v) => save({ opacity: v })} />
         <Slider key={`s${config.scale}`} label="Escala" value={config.scale} min={50} max={150} unit="%" onCommit={(v) => save({ scale: v })} />
         <Slider key={`g${config.gap}`} label="Espacio entre tarjetas" value={config.gap} min={0} max={48} unit="px" onCommit={(v) => save({ gap: v })} />
+        <Slider
+          key={`p${config.pokeballOpacity}`}
+          label={config.pokeballOpacity ? "Silueta de pokébola" : "Silueta de pokébola (oculta)"}
+          value={config.pokeballOpacity}
+          min={0}
+          max={100}
+          unit="%"
+          onCommit={(v) => save({ pokeballOpacity: v })}
+        />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">

@@ -41,7 +41,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts` |
 | `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog` |
 | `features/showdown` | Exportar/importar; `ShowdownBox`, `CopySlotButton` |
-| `features/widget` | Contrato `WidgetState` (v2), stream SSE, `Widget` (OBS), `WidgetSettings` (panel) |
+| `features/widget` | Contrato `WidgetState` (v3), stream SSE, `Widget` (OBS), `WidgetSettings` (panel) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |
 

@@ -1,6 +1,6 @@
 "use client";
 // Widget de OBS: fondo transparente, 1920x1080. Solo pinta lo que llega por SSE (sin lógica de negocio).
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { cx } from "@/core/ui/cx";
 import { Sprite } from "@/core/ui/Sprite";
 import { TypeBadge } from "@/core/ui/TypeBadge";
@@ -44,38 +44,57 @@ function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: W
   const title = config.showNickname && slot.nickname ? slot.nickname : slot.speciesName;
 
   return (
+    // Contenedor circular: el contenido va en columna centrada para caber dentro del círculo
     <div
-      className={cx("anim-slot-in relative w-[250px] rounded-2xl border p-3 text-text", slot.fainted && config.faintEffect && "opacity-60 grayscale")}
+      className={cx(
+        "anim-slot-in relative flex h-[210px] w-[210px] flex-col items-center justify-center rounded-full border px-8 text-center text-text",
+        slot.fainted && config.faintEffect && "opacity-60 grayscale",
+      )}
       style={{
         background: `rgba(16, 27, 46, ${config.opacity / 100})`,
         borderColor: `rgba(53, 184, 243, ${0.15 + (config.opacity / 100) * 0.35})`,
         boxShadow: config.opacity > 0 ? "0 8px 30px rgba(0,0,0,0.35)" : "none",
       }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="truncate text-lg font-bold leading-tight drop-shadow">{title}</div>
-          {config.showNickname && slot.nickname && <div className="truncate text-xs text-muted">{slot.speciesName}</div>}
-        </div>
-        {config.showLevel && (
-          <span className="shrink-0 rounded-md bg-accent/15 px-2 py-0.5 font-mono text-xs font-semibold text-accent">Nv.{slot.level}</span>
-        )}
+      {config.pokeballOpacity > 0 && <PokeballSilhouette opacity={config.pokeballOpacity / 100} />}
+
+      <div className="relative w-full max-w-[140px]">
+        <div className="truncate text-base font-bold leading-tight drop-shadow">{title}</div>
+        {config.showNickname && slot.nickname && <div className="truncate text-[10px] text-muted">{slot.speciesName}</div>}
       </div>
 
-      <div className="my-1 flex h-[110px] items-center justify-center">
-        <Sprite base={spritesBase} spriteId={slot.spriteId} shiny={slot.shiny} animated={config.animated} alt={slot.speciesName} className="max-h-[110px] max-w-[200px]" />
+      <div className="relative my-1 flex h-[90px] w-full items-center justify-center">
+        <Sprite base={spritesBase} spriteId={slot.spriteId} shiny={slot.shiny} animated={config.animated} alt={slot.speciesName} className="max-h-[90px] max-w-[130px]" />
         {slot.fainted && (
-          <span className="absolute right-3 top-14 rounded bg-bad/90 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">DEBILITADO</span>
+          <span className="absolute bottom-0 rounded bg-bad/90 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">DEBILITADO</span>
         )}
       </div>
 
       {config.showTypes && (
-        <div className="mt-2 flex gap-1.5">
+        <div className="relative flex justify-center gap-1">
           {slot.types.map((t) => (
             <TypeBadge key={t} type={t} className="py-0.5" />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/** Silueta de pokébola detrás del Pokémon (franja central y botón recortados). */
+function PokeballSilhouette({ opacity }: { opacity: number }) {
+  const mask = useId();
+  return (
+    <svg viewBox="0 0 100 100" aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[170px] w-[170px] -translate-x-1/2 -translate-y-1/2 text-white" style={{ opacity }}>
+      <defs>
+        <mask id={mask}>
+          <rect width="100" height="100" fill="white" />
+          <rect x="0" y="45.5" width="100" height="9" fill="black" />
+          <circle cx="50" cy="50" r="16" fill="black" />
+        </mask>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="currentColor" mask={`url(#${mask})`} />
+      <circle cx="50" cy="50" r="9" fill="currentColor" />
+    </svg>
   );
 }

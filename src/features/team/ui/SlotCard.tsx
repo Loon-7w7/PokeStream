@@ -95,10 +95,7 @@ function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) 
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="truncate text-lg font-bold">{slot.nickname || slot.speciesName}</div>
-            <div className="shrink-0 font-mono text-xs text-accent">Nv.{slot.level}</div>
-          </div>
+          <div className="truncate text-lg font-bold">{slot.nickname || slot.speciesName}</div>
           {slot.nickname && <div className="truncate text-xs text-muted">{slot.speciesName}</div>}
           <div className="mt-1 flex flex-wrap items-center gap-1">
             {slot.types.map((t) => (
