@@ -1,6 +1,7 @@
 // Protege el panel: sin cookie válida redirige a /login.
-// El widget (/widget/*), su stream (/api/stream/*) y /api/dex son públicos.
-// Las server actions además validan con requireAdmin().
+// Públicos: widget, su stream, /api/dex y archivos estáticos (iconos).
+// Es solo una comprobación optimista; la autorización real es requireAdmin() en mutateRun.
+// Excepción documentada: lee process.env directamente (no puede importar módulos server-only).
 import { NextResponse, type NextRequest } from "next/server";
 
 export function proxy(req: NextRequest) {
@@ -14,5 +15,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|widget|api/stream|api/dex|_next|favicon.ico).*)"],
+  matcher: ["/((?!login|widget/|api/stream/|api/dex|_next/|.*\\.(?:svg|png|ico|txt)$).*)"],
 };

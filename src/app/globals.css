@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
-/* Paleta del panel (inspirada en el concepto de Stitch: oscuro + acentos neón) */
+/* Paleta derivada del icono (public/logo.svg): navy + rojo #f7254f + azul #35b8f3 */
 @theme {
-  --color-bg: #0a0e16;
-  --color-panel: #111723;
-  --color-card: #161e2d;
-  --color-line: #243047;
-  --color-muted: #8391a8;
-  --color-text: #e6ebf5;
-  --color-accent: #38d0f5;
-  --color-accent-2: #ff4d6a;
+  --color-bg: #0b1424;
+  --color-panel: #101b2e;
+  --color-card: #1d293d;
+  --color-line: #2a3a55;
+  --color-muted: #8595ae;
+  --color-text: #e8edf6;
+  --color-accent: #35b8f3;
+  --color-accent-2: #f7254f;
+  --color-indigo: #5269e9;
   --color-ok: #34d399;
   --color-warn: #fbbf24;
-  --color-bad: #f43f5e;
+  --color-bad: #f7254f;
   --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
 }
@@ -37,12 +38,12 @@ body {
 .anim-hit { animation: hit 0.5s ease-out; }
 
 .checkerboard {
-  background-color: #1b2130;
+  background-color: #1d293d;
   background-image:
-    linear-gradient(45deg, #232a3b 25%, transparent 25%),
-    linear-gradient(-45deg, #232a3b 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #232a3b 75%),
-    linear-gradient(-45deg, transparent 75%, #232a3b 75%);
+    linear-gradient(45deg, #26354c 25%, transparent 25%),
+    linear-gradient(-45deg, #26354c 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #26354c 75%),
+    linear-gradient(-45deg, transparent 75%, #26354c 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
 }

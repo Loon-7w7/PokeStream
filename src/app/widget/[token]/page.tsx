@@ -1,17 +1,14 @@
-// Página que se agrega a OBS como "Fuente de navegador" (1920x1080).
+// Fuente de navegador para OBS (1920x1080, fondo transparente).
 import { notFound } from "next/navigation";
-import { Widget } from "@/components/widget/Widget";
-import { getRunIdByToken, getWidgetState } from "@/lib/run";
-import { DEFAULT_SPRITES_BASE_URL } from "@/lib/sprites";
+import { env } from "@/core/config/env";
+import { getWidgetStateByToken } from "@/features/widget";
+import { Widget } from "@/features/widget/ui";
 
 export const dynamic = "force-dynamic";
 
 export default async function WidgetPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const runId = await getRunIdByToken(token);
-  const state = runId ? await getWidgetState(runId) : null;
+  const state = await getWidgetStateByToken(token);
   if (!state) notFound();
-  return (
-    <Widget token={token} initial={state} spritesBase={process.env.SPRITES_BASE_URL || DEFAULT_SPRITES_BASE_URL} />
-  );
+  return <Widget token={token} initial={state} spritesBase={env.SPRITES_BASE_URL} />;
 }

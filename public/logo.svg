@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="304" height="295" viewBox="0 0 304 295">
+  <defs>
+    <clipPath id="ballClip"><circle cx="152" cy="149" r="128"/></clipPath>
+    <radialGradient id="buttonBlue" cx="35%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#35b8f3"/>
+      <stop offset="1" stop-color="#5269e9"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Transparent background -->
+  <circle cx="152" cy="149" r="136" fill="#26354c"/>
+  <circle cx="152" cy="149" r="128" fill="#1d293d"/>
+
+  <!-- Ball halves -->
+  <g clip-path="url(#ballClip)">
+    <rect x="24" y="21" width="256" height="116" fill="#f7254f"/>
+    <rect x="24" y="137" width="256" height="140" fill="#1d293d"/>
+    <!-- central dividing line -->
+    <rect x="24" y="137" width="256" height="11" fill="#101b2e"/>
+  </g>
+
+  <!-- Outer rim -->
+  <circle cx="152" cy="149" r="128" fill="none" stroke="#101b2e" stroke-width="8"/>
+
+  <!-- Red surface highlights -->
+  <path d="M87 62 C119 32 164 27 207 47" fill="none" stroke="#ff6b83" stroke-width="11" stroke-linecap="round"/>
+  <path d="M116 83 C136 67 164 67 187 84" fill="none" stroke="#ffe8ec" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- Center button -->
+  <circle cx="152" cy="149" r="47" fill="#101b2e"/>
+  <circle cx="152" cy="149" r="32" fill="#f7f8fa"/>
+  <circle cx="152" cy="149" r="18" fill="url(#buttonBlue)"/>
+
+  <!-- Subtle bottom rim -->
+  <path d="M35 181 C47 225 91 263 152 263 C213 263 257 225 269 181" fill="none" stroke="#26354c" stroke-width="4" opacity="0.55"/>
+</svg>

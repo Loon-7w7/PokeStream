@@ -51,10 +51,14 @@ npm run dev       # http://localhost:3000
 | Comando | Para qué |
 |---|---|
 | `npm run dev` | Servidor de desarrollo |
+| `npm run check` | Todo: tipos, lint (con reglas de arquitectura), prueba de arquitectura y tests |
 | `npm test` | Tests (vitest) |
 | `npm run typecheck` / `npm run lint` | Verificación de tipos / lint |
 | `npm run db:migrate -- --name cambio` | Crear una migración tras editar `prisma/schema.prisma` |
 | `npm run db:studio` | Ver/editar la BD en el navegador |
+
+## Arquitectura
+Monolito modular por features con dominio puro y reglas verificadas por ESLint y CI. Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Variables de entorno
 | Variable | Descripción |
@@ -68,4 +72,4 @@ npm run dev       # http://localhost:3000
 - Pon un proxy con HTTPS delante (Caddy o Nginx). Con Nginx, desactiva el buffering en `/api/stream/` (la app ya envía `X-Accel-Buffering: no`).
 - Usa un `ADMIN_TOKEN` largo y aleatorio.
 - Para varios usuarios harán falta login con Twitch/Kick y una run por usuario (ver "Pendiente" en `CLAUDE.md`).
-- Con varias instancias del servidor, cambia el bus de `src/lib/events.ts` por Redis pub/sub.
+- Con varias instancias del servidor, implementa `RealtimeBus` (`src/core/realtime/bus.ts`) con Redis pub/sub.
