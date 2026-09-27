@@ -104,8 +104,7 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderE
 
       {dialog?.kind === "replace" && (
         <SpeciesPicker
-          position={dialog.position}
-          current={dialogSlot?.speciesName || null}
+          title={`${dialogSlot?.speciesName ? `Reemplazar a ${dialogSlot.speciesName}` : "Agregar Pokémon"} · slot ${dialog.position + 1}`}
           spritesBase={spritesBase}
           onClose={() => setDialog(null)}
           onPick={(speciesId) => {

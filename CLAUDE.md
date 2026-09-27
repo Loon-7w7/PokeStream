@@ -36,11 +36,11 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
 | `features/auth` | `requireAdmin`, `verifyToken`, login/logout, `LoginForm` |
-| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info, config del widget, `RunHeader` |
+| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`), config del widget, `RunHeader` (acepta `actions`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
-| `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos) |
-| `features/showdown` | Exportar/importar; `ShowdownBox`, `CopySlotButton` |
+| `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos), `NewGameButton` (`startNewGame`) |
+| `features/showdown` | Exportar el equipo · importar a la caja (`addSetsToBox`); `ShowdownBox` (botones + diálogo de importar), `CopySlotButton` |
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots, posiciones en `Run.slotPositions`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |

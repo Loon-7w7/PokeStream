@@ -1,11 +1,12 @@
 "use client";
-// Pestañas Caja / Muertos: Pokémon que salieron del equipo. Desde la caja se devuelven a un slot.
+// Pestañas Caja / Muertos. A la caja llegan los que salen del equipo, los importados y los que se agregan a mano.
 import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
 import { cx } from "@/core/ui/cx";
 import { Sprite } from "@/core/ui/Sprite";
 import * as A from "../actions";
 import type { SlotView, StorageView, StoredView } from "../types";
+import { SpeciesPicker } from "./SpeciesPicker";
 
 type Tab = "box" | "graveyard";
 
@@ -20,6 +21,7 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
   const { run } = useAction();
   const [tab, setTab] = useState<Tab>("box");
   const [selected, setSelected] = useState<number | null>(null);
+  const [picking, setPicking] = useState(false);
   const list = storage[tab];
   const current = list.find((p) => p.index === selected) ?? null;
   // Lo más reciente primero
@@ -42,18 +44,25 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
 
   return (
     <div className="rounded-2xl border border-line bg-panel p-4">
-      <div className="mb-3 grid max-w-sm grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="tablist">
-        <TabButton active={tab === "box"} onClick={() => switchTab("box")}>
-          Caja <Count n={storage.box.length} />
-        </TabButton>
-        <TabButton active={tab === "graveyard"} onClick={() => switchTab("graveyard")}>
-          💀 Muertos <Count n={storage.graveyard.length} />
-        </TabButton>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="grid w-full max-w-sm grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="tablist">
+          <TabButton active={tab === "box"} onClick={() => switchTab("box")}>
+            Caja <Count n={storage.box.length} />
+          </TabButton>
+          <TabButton active={tab === "graveyard"} onClick={() => switchTab("graveyard")}>
+            💀 Muertos <Count n={storage.graveyard.length} />
+          </TabButton>
+        </div>
+        {tab === "box" && (
+          <button onClick={() => setPicking(true)} className="ml-auto rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-bg hover:brightness-110">
+            + Agregar a la caja
+          </button>
+        )}
       </div>
 
       {list.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted">
-          {tab === "box" ? "Los Pokémon que salgan del equipo aparecerán aquí." : "Aquí irán los Pokémon muertos en modo Nuzlocke al sacarlos del equipo."}
+          {tab === "box" ? "Aquí llegan los Pokémon que salen del equipo, los importados de Showdown y los que agregues." : "Aquí irán los Pokémon muertos en modo Nuzlocke al sacarlos del equipo."}
         </p>
       ) : (
         <ul className="grid max-h-80 grid-cols-4 gap-2 overflow-y-auto pr-1 sm:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-10" role="tabpanel">
@@ -99,6 +108,18 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
             {tab === "box" ? "Soltar (borrar de la caja)" : "Borrar de Muertos"}
           </button>
         </div>
+      )}
+
+      {picking && (
+        <SpeciesPicker
+          title="Agregar a la caja"
+          spritesBase={spritesBase}
+          onClose={() => setPicking(false)}
+          onPick={(speciesId) => {
+            setPicking(false);
+            run(() => A.addSpeciesToBox(speciesId));
+          }}
+        />
       )}
     </div>
   );

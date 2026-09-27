@@ -11,7 +11,7 @@ Panel web para gestionar tu equipo Pokémon en directo y un widget transparente 
 - Arrastrar para reordenar, modo Nuzlocke (un debilitado no puede revivir).
 - Caja con los Pokémon que salen del equipo (se pueden devolver) y pestaña de Muertos del Nuzlocke.
 - Widget para OBS (HUD inferior) que se actualiza en vivo, con opacidad, escala, espaciado y elementos configurables.
-- Exportar e importar equipos en formato **Pokémon Showdown**.
+- Exportar el equipo en formato **Pokémon Showdown** e importar Pokémon desde Showdown directo a la caja.
 - Sprites directos de Showdown (`SPRITES_BASE_URL`), sin descargar imágenes.
 
 **Atajos del panel:** `1`–`6` elegir slot · `R` reemplazar · `E` editar · `F` debilitar/revivir.

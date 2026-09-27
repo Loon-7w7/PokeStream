@@ -12,8 +12,7 @@ import { TypeBadge } from "@/core/ui/TypeBadge";
 const MAX_RESULTS = 30;
 
 export function SpeciesPicker(props: {
-  position: number;
-  current: string | null;
+  title: string;
   spritesBase: string;
   onPick: (speciesId: string) => void;
   onClose: () => void;
@@ -65,7 +64,7 @@ export function SpeciesPicker(props: {
   };
 
   return (
-    <Modal onClose={props.onClose} title={`${props.current ? `Reemplazar a ${props.current}` : "Agregar Pokémon"} · slot ${props.position + 1}`}>
+    <Modal onClose={props.onClose} title={props.title}>
       <input
         autoFocus
         value={q}

@@ -9,6 +9,20 @@ vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined })
 
 let team: typeof import("./team.service");
 
+const toSetOf = (species: string) => ({
+  species,
+  nickname: "",
+  ability: "",
+  item: "",
+  nature: "",
+  teraType: "",
+  gender: "" as const,
+  shiny: false,
+  moves: [],
+  evs: null,
+  ivs: null,
+});
+
 beforeAll(async () => {
   process.env.DATABASE_URL = await createTestDatabaseUrl();
   team = await import("./team.service");
@@ -41,11 +55,30 @@ describe("team.service (integración)", () => {
     expect((await team.getStorageView()).box).toEqual([]);
   });
 
+  it("se pueden meter Pokémon directo a la caja (a mano o importados) sin tocar el equipo", async () => {
+    const before = await team.getTeamView();
+    await team.addSpeciesToBox("bulbasaur");
+    await team.addSetsToBox([{ ...toSetOf("eevee"), nickname: "Vee" }]);
+    const { box } = await team.getStorageView();
+    expect(box.map((b) => b.nickname || b.speciesName)).toEqual(["Bulbasaur", "Vee"]);
+    expect(await team.getTeamView()).toEqual(before);
+    await team.releaseStored("box", 1);
+    await team.releaseStored("box", 0);
+  });
+
   it("un error de dominio no deja cambios a medias", async () => {
     const before = await team.getTeamView();
     await expect(team.evolveSlot(5, "haunter")).rejects.toThrow("El slot está vacío");
     await expect(team.withdrawFromBox(7, 5)).rejects.toThrow("ya no está en la caja");
     expect(await team.getTeamView()).toEqual(before);
+  });
+
+  it("nueva partida vacía equipo, caja y Muertos", async () => {
+    await team.replaceSpecies(3, "pikachu");
+    await team.addSpeciesToBox("eevee");
+    await team.startNewGame();
+    expect((await team.getTeamView()).every((s) => !s.species)).toBe(true);
+    expect(await team.getStorageView()).toEqual({ box: [], graveyard: [] });
   });
 
   it("rechaza especies desconocidas", async () => {

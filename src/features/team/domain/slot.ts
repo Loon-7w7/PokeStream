@@ -31,7 +31,7 @@ export function placeSpecies(prev: SlotData, species: SpeciesInfo): SlotData {
   return { ...emptySlot(prev.position), species: species.id, ability: species.defaultAbilityId };
 }
 
-/** Coloca un set guardado (caja o importación) en un slot, vivo. */
+/** Coloca un set guardado (caja) en un slot, vivo. */
 export const placeSet = (set: PokemonSetData, position: number): SlotData => ({ ...set, position, fainted: false });
 
 /** Evolución: conserva mote, objeto, movimientos y estado debilitado. */

@@ -2,7 +2,7 @@ import "server-only";
 import { describeSet, getSpeciesInfo, resolveId, resolveType } from "@/core/pokedex/server";
 import type { PokemonSetData, SpeciesInfo } from "@/core/pokedex/types";
 import { fail } from "@/core/result";
-import { getCurrentRun, mutateRun, type MutationContext } from "@/features/run";
+import { getCurrentRun, mutateRun, resetRunInfo, type MutationContext } from "@/features/run";
 import * as domain from "../domain/slot";
 import * as box from "../domain/storage";
 import { TEAM_SIZE, type SlotData, type SlotPatch, type SlotView, type StorageView } from "../types";
@@ -106,15 +106,17 @@ export const reorderTeam = (order: number[]) =>
     await slots.reorderSlots(runId, domain.validateOrder(order), db);
   });
 
-/** Reemplaza los 6 slots con sets importados (los que falten quedan vacíos). El equipo anterior va a la caja. */
-export const replaceTeam = (sets: PokemonSetData[]) =>
-  mutateRun(async (ctx) => {
-    await stashLeaving(ctx, await slots.listSlots(ctx.runId, ctx.db));
-    for (let position = 0; position < TEAM_SIZE; position++) {
-      const set = sets[position];
-      const slot = set && getSpeciesInfo(set.species) ? domain.placeSet(set, position) : domain.emptySlot(position);
-      await slots.saveSlot(ctx.runId, slot, ctx.db);
-    }
+/** Mete sets en la caja (p. ej. importados desde Showdown). */
+export const addSetsToBox = (sets: PokemonSetData[]) =>
+  mutateRun(async ({ db, runId }) => {
+    await storage.saveStorage(runId, box.addToBox(await storage.getStorage(runId, db), sets), db);
+  });
+
+/** Mete una especie nueva directamente en la caja. */
+export const addSpeciesToBox = (speciesId: string) =>
+  mutateRun(async ({ db, runId }) => {
+    const set = domain.toSet(domain.placeSpecies(domain.emptySlot(0), requireSpecies(speciesId)));
+    await storage.saveStorage(runId, box.addToBox(await storage.getStorage(runId, db), [set]), db);
   });
 
 /** Caja -> equipo: el Pokémon entra al slot y el que estaba ahí va a la caja (o a Muertos). */
@@ -130,4 +132,12 @@ export const withdrawFromBox = (index: number, position: number) =>
 export const releaseStored = (list: "box" | "graveyard", index: number) =>
   mutateRun(async ({ db, runId }) => {
     await storage.saveStorage(runId, box.removeStored(await storage.getStorage(runId, db), list, index), db);
+  });
+
+/** Nueva partida: equipo, caja y Muertos vacíos; título, juego y reglas en blanco y Nuzlocke apagado. Todo o nada. */
+export const startNewGame = () =>
+  mutateRun(async (ctx) => {
+    for (let position = 0; position < TEAM_SIZE; position++) await slots.saveSlot(ctx.runId, domain.emptySlot(position), ctx.db);
+    await storage.saveStorage(ctx.runId, { box: [], graveyard: [] }, ctx.db);
+    await resetRunInfo(ctx);
   });

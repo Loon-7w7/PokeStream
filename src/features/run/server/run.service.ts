@@ -4,7 +4,7 @@ import { fail } from "@/core/result";
 import type { RunInfo, RunOverview, WidgetConfig, WidgetConfigPatch } from "../types";
 import { getCurrentRun, newWidgetToken } from "./current-run";
 import * as runs from "./run.repository";
-import { mutateRun } from "./unit-of-work";
+import { mutateRun, type MutationContext } from "./unit-of-work";
 
 /** Casos de uso de la feature run. */
 
@@ -42,6 +42,10 @@ export const updateWidgetConfig = (patch: WidgetConfigPatch) =>
     if (!Object.keys(patch).length) fail("INVALID", "No hay cambios que guardar");
     await runs.updateWidgetConfig(runId, patch, db);
   });
+
+/** Nueva partida: título, juego y reglas en blanco y Nuzlocke apagado. Se llama dentro de otra mutación. */
+export const resetRunInfo = ({ db, runId }: MutationContext) =>
+  runs.updateRunInfo(runId, { title: "", game: "", ruleset: "", nuzlocke: false }, db);
 
 export const regenerateWidgetToken = () =>
   mutateRun(async ({ db, runId }) => {

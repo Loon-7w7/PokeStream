@@ -12,5 +12,5 @@ export async function exportShowdown(position?: number) {
 }
 
 export async function importShowdown(text: string) {
-  return runAction(() => showdown.importTeam(z.string().max(20_000).parse(text)), { refresh: true });
+  return runAction(() => showdown.importToBox(z.string().max(20_000).parse(text)), { refresh: true });
 }

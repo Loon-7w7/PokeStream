@@ -49,8 +49,16 @@ export async function withdrawFromBox(index: number, position: number) {
   return runAction(() => team.withdrawFromBox(z.number().int().min(0).parse(index), Position.parse(position)), opts);
 }
 
+export async function addSpeciesToBox(speciesId: string) {
+  return runAction(() => team.addSpeciesToBox(Id.parse(speciesId)), opts);
+}
+
 export async function releaseStored(list: "box" | "graveyard", index: number) {
   return runAction(() => team.releaseStored(z.enum(["box", "graveyard"]).parse(list), z.number().int().min(0).parse(index)), opts);
+}
+
+export async function startNewGame() {
+  return runAction(() => team.startNewGame(), opts);
 }
 
 export async function reorderTeam(order: number[]) {

@@ -6,18 +6,19 @@ import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
 import { RunHeader } from "@/features/run/ui";
 import { CopySlotButton, ShowdownBox } from "@/features/showdown/ui";
-import { StoragePanel, TeamSection } from "@/features/team/ui";
+import { NewGameButton, StoragePanel, TeamSection } from "@/features/team/ui";
 import { WidgetSettings } from "@/features/widget/ui";
 import type { DashboardState } from "../types";
+import { Footer } from "./Footer";
 
 export function Dashboard({ state }: { state: DashboardState }) {
   return (
     <ActionProvider>
       <LiveSync token={state.run.widgetToken} />
-      <div className="min-h-screen bg-bg text-text">
-        <RunHeader info={state.run.info} appName={state.appName} authEnabled={state.authEnabled} />
+      <div className="flex min-h-screen flex-col bg-bg text-text">
+        <RunHeader info={state.run.info} appName={state.appName} authEnabled={state.authEnabled} actions={<NewGameButton />} />
         <ErrorBanner />
-        <main className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 lg:grid-cols-[1fr_380px]">
+        <main className="mx-auto grid w-full max-w-[1500px] flex-1 content-start gap-5 px-4 py-5 lg:grid-cols-[1fr_380px]">
           <div className="flex min-w-0 flex-col gap-5">
             <TeamSection
               slots={state.team}
@@ -32,6 +33,7 @@ export function Dashboard({ state }: { state: DashboardState }) {
             <ShowdownBox />
           </aside>
         </main>
+        <Footer />
       </div>
     </ActionProvider>
   );

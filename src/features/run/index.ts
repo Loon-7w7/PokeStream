@@ -8,4 +8,5 @@ export {
   findRunIdByWidgetToken,
   isWidgetTokenValid,
   subscribeToRun,
+  resetRunInfo,
 } from "./server/run.service";

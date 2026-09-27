@@ -5,7 +5,15 @@ import { logout } from "@/features/auth/actions";
 import { updateRunInfo } from "../actions";
 import type { RunInfo } from "../types";
 
-export function RunHeader({ info, appName, authEnabled }: { info: RunInfo; appName: string; authEnabled: boolean }) {
+export interface RunHeaderProps {
+  info: RunInfo;
+  appName: string;
+  authEnabled: boolean;
+  /** Acciones extra que inyecta quien compone (p. ej. "Nueva partida"). */
+  actions?: React.ReactNode;
+}
+
+export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProps) {
   const { run, pending } = useAction();
   const save = (field: "title" | "game" | "ruleset", value: string) => {
     if (value !== info[field]) run(() => updateRunInfo({ [field]: value }));
@@ -25,6 +33,7 @@ export function RunHeader({ info, appName, authEnabled }: { info: RunInfo; appNa
           <InlineInput value={info.ruleset} placeholder="Reglas (ej. Nuzlocke Hardcore)" className="w-60" onCommit={(v) => save("ruleset", v)} />
         </div>
 
+        {actions}
         <button
           onClick={() => run(() => updateRunInfo({ nuzlocke: !info.nuzlocke }))}
           aria-pressed={info.nuzlocke}

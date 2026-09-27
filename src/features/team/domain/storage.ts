@@ -11,6 +11,9 @@ export function stash(storage: StoredSets, leaving: SlotData[], rules: SlotRules
   return next;
 }
 
+/** Mete Pokémon directamente en la caja (importados o elegidos a mano). */
+export const addToBox = (storage: StoredSets, sets: PokemonSetData[]): StoredSets => ({ ...storage, box: [...storage.box, ...sets] });
+
 /** Saca un Pokémon de la caja. */
 export function takeFromBox(storage: StoredSets, index: number): { set: PokemonSetData; storage: StoredSets } {
   const set = storage.box[index] ?? fail("NOT_FOUND", "Ese Pokémon ya no está en la caja");
