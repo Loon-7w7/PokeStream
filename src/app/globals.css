@@ -30,6 +30,22 @@ body {
 }
 .anim-slot-in { animation: slot-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
+/* PokeballStage: la costura se cierra desde el centro y luego asienta el botón */
+@keyframes seam-in {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes pokeball-button-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.anim-seam { animation: seam-in 0.6s cubic-bezier(0.65, 0, 0.35, 1) both; }
+.anim-pokeball-button { animation: pokeball-button-in 0.45s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .anim-seam, .anim-pokeball-button { animation: none; }
+}
+
 .checkerboard {
   background-color: #1d293d;
   background-image:

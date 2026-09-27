@@ -1,13 +1,12 @@
-// Protege el panel: sin cookie válida redirige a /login.
-// Públicos: widget, su stream, /api/dex y archivos estáticos (iconos).
-// Es solo una comprobación optimista; la autorización real es requireAdmin() en mutateRun.
+// Protege el panel: sin cookie de sesión redirige a /login.
+// Públicos: login, widget, su stream, /api/auth (OAuth), /api/dex y archivos estáticos (iconos).
+// Es solo una comprobación optimista (no verifica la firma); la autorización real es requireAdmin() en mutateRun.
 // Excepción documentada: lee process.env directamente (no puede importar módulos server-only).
 import { NextResponse, type NextRequest } from "next/server";
 
 export function proxy(req: NextRequest) {
-  const expected = process.env.ADMIN_TOKEN;
-  if (!expected) return NextResponse.next();
-  if (req.cookies.get("admin_token")?.value === expected) return NextResponse.next();
+  if (!process.env.GOOGLE_CLIENT_ID) return NextResponse.next();
+  if (req.cookies.has("session")) return NextResponse.next();
   const url = req.nextUrl.clone();
   url.pathname = "/login";
   url.search = "";
@@ -15,5 +14,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|widget/|api/stream/|api/dex|_next/|.*\\.(?:svg|png|ico|txt)$).*)"],
+  matcher: ["/((?!login|widget/|api/stream/|api/auth/|api/dex|_next/|.*\\.(?:svg|png|ico|txt)$).*)"],
 };

@@ -29,13 +29,13 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | Ruta | Qué hay |
 |---|---|
 | `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run, sin nivel: todo es nivel 50), `Storage` (caja y muertos como texto Showdown) |
-| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/dex` |
+| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/auth/google` (OAuth), `/api/dex` |
 | `src/core/pokedex/server.ts` | `getSpeciesInfo`, `resolveId`, `describeSet`, `buildDexIndex` |
 | `src/core/pokedex/showdown.ts` | `formatShowdown` / `parseShowdown` |
 | `src/core/pokedex/sprites.ts` | URLs de sprites `{SPRITES_BASE_URL}{ani|gen5|dex}[-shiny]/{spriteId}` |
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
-| `features/auth` | `requireAdmin`, `verifyToken`, login/logout, `LoginForm` |
+| `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión en cookie firmada HMAC (`server/session.ts`), `ALLOWED_EMAILS`; `requireAdmin`, `isAdmin`, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
 | `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`), config del widget, `RunHeader` (acepta `actions`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |

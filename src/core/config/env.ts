@@ -10,7 +10,21 @@ import { DEFAULT_SPRITES_BASE_URL } from "../pokedex/sprites";
 const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   APP_NAME: z.string().trim().min(1).default("PartyHUD"),
-  ADMIN_TOKEN: z.string().default(""),
+  /** URL pública sin "/" final. De ella sale la URL de redirección de Google. */
+  APP_URL: z.url().default("http://localhost:3000").transform((url) => url.replace(/\/+$/, "")),
+  GOOGLE_CLIENT_ID: z.string().trim().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().trim().default(""),
+  SESSION_SECRET: z.string().default(""),
+  /** Correos que pueden entrar al panel, separados por comas. */
+  ALLOWED_EMAILS: z
+    .string()
+    .default("")
+    .transform((list) =>
+      list
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   DATABASE_URL: z.string().min(1).default("file:./data/app.db"),
   SPRITES_BASE_URL: z.url().default(DEFAULT_SPRITES_BASE_URL),
 });
@@ -22,6 +36,14 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-if (env.NODE_ENV === "production" && !env.ADMIN_TOKEN) {
-  console.warn("[env] ADMIN_TOKEN vacío: el panel no pide contraseña. Úsalo solo en tu red local.");
+// Login con Google: se activa con GOOGLE_CLIENT_ID; entonces lo demás es obligatorio.
+if (env.GOOGLE_CLIENT_ID) {
+  const missing = [
+    !env.GOOGLE_CLIENT_SECRET && "GOOGLE_CLIENT_SECRET",
+    env.SESSION_SECRET.length < 32 && "SESSION_SECRET (mínimo 32 caracteres)",
+    env.ALLOWED_EMAILS.length === 0 && "ALLOWED_EMAILS",
+  ].filter(Boolean);
+  if (missing.length) throw new Error(`Login con Google incompleto. Falta: ${missing.join(", ")}`);
+} else if (env.NODE_ENV === "production") {
+  console.warn("[env] GOOGLE_CLIENT_ID vacío: el panel no pide login. Úsalo solo en tu red local.");
 }
