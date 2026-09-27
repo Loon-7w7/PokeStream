@@ -29,6 +29,12 @@ export interface PokemonSetData {
   ivs: StatsTable | null;
 }
 
+/**
+ * Versión del formato del índice. Súbela al cambiar DexIndex/DexSpecies: va en la URL (/api/dex?v=N),
+ * así el navegador no reutiliza un índice viejo de su caché (se cachea 24 h).
+ */
+export const DEX_INDEX_VERSION = 2;
+
 /** Índice ligero que el panel descarga una vez (/api/dex). */
 export interface DexIndex {
   species: DexSpecies[];
@@ -47,6 +53,8 @@ export interface DexSpecies extends DexEntry {
   spriteId: string;
   types: string[];
   abilities: string[];
+  /** IDs de sus evoluciones directas ([] = etapa final). */
+  evos: string[];
 }
 
 /** Nombres legibles de un set, para mostrar. */

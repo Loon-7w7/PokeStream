@@ -54,6 +54,9 @@ export function resolveType(value: string): string {
 
 const nameOf = (kind: Kind, id: string) => (id ? tables[kind].get(id).name || id : "");
 
+/** Evoluciones directas permitidas de una especie. */
+const evosOf = (s: Species) => (s.evos ?? []).map((n) => findSpecies(n)).filter((e): e is Species => !!e);
+
 /** Nombres legibles para mostrar un set. */
 export function describeSet(set: { species: string; ability: string; item: string; nature: string; moves: string[] }): SetDisplay {
   const s = findSpecies(set.species);
@@ -65,10 +68,7 @@ export function describeSet(set: { species: string; ability: string; item: strin
     itemName: nameOf("item", set.item),
     natureName: nameOf("nature", set.nature),
     moveNames: set.moves.map((m) => nameOf("move", m)),
-    evos: (s?.evos ?? [])
-      .map((n) => findSpecies(n))
-      .filter((e): e is Species => !!e)
-      .map((e) => ({ id: e.id, name: e.name })),
+    evos: s ? evosOf(s).map((e) => ({ id: e.id, name: e.name })) : [],
   };
 }
 
@@ -89,6 +89,7 @@ export function buildDexIndex(): DexIndex {
         spriteId: spriteIdOf(s),
         types: [...s.types],
         abilities: Object.values(s.abilities).filter(Boolean) as string[],
+        evos: evosOf(s).map((e) => e.id),
       }))
       .sort((a, b) => a.num - b.num || a.name.localeCompare(b.name)),
     moves: Dex.moves.all().filter(isAllowed).map(entry).sort(byName),

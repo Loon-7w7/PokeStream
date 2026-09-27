@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describeSet, getSpeciesInfo } from "./server";
+import { buildDexIndex, describeSet, getSpeciesInfo } from "./server";
 import { formatShowdown, parseShowdown } from "./showdown";
 import { spriteCandidates } from "./sprites";
 import type { PokemonSetData } from "./types";
@@ -46,6 +46,12 @@ describe("Pokédex", () => {
     expect(sprite("charizardmegax")).toBe("charizard-megax");
     expect(sprite("mrmime")).toBe("mrmime");
     expect(sprite("urshifurapidstrike")).toBe("urshifu-rapidstrike");
+  });
+  it("el índice trae las evoluciones ([] = etapa final)", () => {
+    const evos = (id: string) => buildDexIndex().species.find((s) => s.id === id)?.evos;
+    expect(evos("charmander")).toEqual(["charmeleon"]);
+    expect(evos("charizard")).toEqual([]);
+    expect(evos("eevee")?.length).toBeGreaterThan(5);
   });
   it("excluye Pokémon inventados (CAP)", () => expect(getSpeciesInfo("syclant")).toBeNull());
   it("URLs concatenando la base", () =>

@@ -3,6 +3,8 @@
 import { useEffect, useId, useOptimistic, useState } from "react";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
+import type { DexIndex } from "@/core/pokedex/types";
+import { useDex } from "@/core/pokedex/useDex";
 import { useAction } from "@/core/ui/actions";
 import { Kbd } from "@/core/ui/Kbd";
 import * as A from "../actions";
@@ -11,7 +13,7 @@ import { EditSlotDialog } from "./EditSlotDialog";
 import { SlotCard } from "./SlotCard";
 import { SpeciesPicker } from "./SpeciesPicker";
 
-type Optimistic = { type: "reorder"; slots: SlotView[] } | { type: "patch"; position: number; patch: SlotPatch };
+type Optimistic = { type: "reorder"; slots: SlotView[] } | { type: "patch"; position: number; patch: Partial<SlotView> };
 type Dialog = { kind: "replace" | "edit"; position: number } | null;
 
 export interface TeamSectionProps {
@@ -35,8 +37,16 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderE
   // id estable entre servidor y cliente: sin él, dnd-kit genera aria-describedby distintos (error de hidratación)
   const dndId = useId();
 
+  const dex = useDex();
+
   const patch = (position: number, p: SlotPatch) =>
     run(() => A.updateSlot(position, p), () => applyOptimistic({ type: "patch", position, patch: p }));
+
+  // Evolución optimista: la tarjeta cambia al instante (y si es la etapa final, desaparece "Evolucionar")
+  const evolve = (position: number, speciesId: string) => {
+    const view = evolvedView(dex, speciesId);
+    run(() => A.evolveSlot(position, speciesId), view ? () => applyOptimistic({ type: "patch", position, patch: view }) : undefined);
+  };
 
   // Atajos: 1-6 elegir, R reemplazar, E editar, F debilitar/revivir
   useEffect(() => {
@@ -96,6 +106,7 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderE
                 onReplace={() => setDialog({ kind: "replace", position: s.position })}
                 onEdit={() => setDialog({ kind: "edit", position: s.position })}
                 onPatch={(p) => patch(s.position, p)}
+                onEvolve={(speciesId) => evolve(s.position, speciesId)}
               />
             ))}
           </div>
@@ -136,4 +147,21 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderE
       )}
     </section>
   );
+}
+
+/**
+ * Lo que cambia a la vista al evolucionar, calculado con el índice de la Pokédex.
+ * null (sin respuesta instantánea; espera al servidor) si el índice no cargó o no trae `evos`.
+ */
+function evolvedView(dex: DexIndex | null, speciesId: string): Partial<SlotView> | null {
+  const target = dex?.species.find((s) => s.id === speciesId);
+  if (!dex || !target || !Array.isArray(target.evos)) return null;
+  const nameOf = (id: string) => dex.species.find((s) => s.id === id)?.name ?? id;
+  return {
+    species: target.id,
+    speciesName: target.name,
+    spriteId: target.spriteId,
+    types: target.types,
+    evos: target.evos.map((id) => ({ id, name: nameOf(id) })),
+  };
 }

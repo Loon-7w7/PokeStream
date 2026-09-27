@@ -4,11 +4,9 @@ import { ChevronDown, CircleArrowUp, GripVertical, HeartCrack, HeartPulse, Penci
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useAction } from "@/core/ui/actions";
 import { cx } from "@/core/ui/cx";
 import { Sprite } from "@/core/ui/Sprite";
 import { TypeBadge } from "@/core/ui/TypeBadge";
-import * as A from "../actions";
 import type { SlotPatch, SlotView } from "../types";
 
 export interface SlotCardProps {
@@ -23,6 +21,8 @@ export interface SlotCardProps {
   onEdit: () => void;
   /** Cambio con respuesta instantánea (useOptimistic) + guardado en servidor. */
   onPatch: (patch: SlotPatch) => void;
+  /** Evolucionar (con respuesta instantánea). */
+  onEvolve: (speciesId: string) => void;
 }
 
 export function SlotCard(props: SlotCardProps) {
@@ -88,7 +88,7 @@ export function SlotCard(props: SlotCardProps) {
               <Pencil className="size-4 shrink-0" />
               <span className="truncate">Editar</span>
             </button>
-            {canEvolve && <EvolveButton slot={slot} />}
+            {canEvolve && <EvolveButton slot={slot} onEvolve={props.onEvolve} />}
           </>
         )}
       </div>
@@ -150,10 +150,8 @@ function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) 
 }
 
 /** Evolucionar: directo si hay una sola evolución; si hay varias (ej. Eevee), menú para elegir. */
-function EvolveButton({ slot }: { slot: SlotView }) {
-  const { run } = useAction();
+function EvolveButton({ slot, onEvolve: evolve }: { slot: SlotView; onEvolve: (speciesId: string) => void }) {
   const [open, setOpen] = useState(false);
-  const evolve = (id: string) => run(() => A.evolveSlot(slot.position, id));
   const [only] = slot.evos;
   const btn = cx(ACTION, "border border-ok/50 text-ok hover:bg-ok/10");
 
