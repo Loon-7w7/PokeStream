@@ -4,9 +4,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
-import { HistoryList, RunHeader } from "@/features/run/ui";
+import { RunHeader } from "@/features/run/ui";
 import { CopySlotButton, ShowdownBox } from "@/features/showdown/ui";
-import { TeamSection } from "@/features/team/ui";
+import { StoragePanel, TeamSection } from "@/features/team/ui";
 import { WidgetSettings } from "@/features/widget/ui";
 import type { DashboardState } from "../types";
 
@@ -18,16 +18,18 @@ export function Dashboard({ state }: { state: DashboardState }) {
         <RunHeader info={state.run.info} appName={state.appName} authEnabled={state.authEnabled} />
         <ErrorBanner />
         <main className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 lg:grid-cols-[1fr_380px]">
-          <TeamSection
-            slots={state.team}
-            spritesBase={state.spritesBase}
-            nuzlocke={state.run.info.nuzlocke}
-            renderMenuExtras={(slot) => <CopySlotButton position={slot.position} />}
-          />
+          <div className="flex min-w-0 flex-col gap-5">
+            <TeamSection
+              slots={state.team}
+              spritesBase={state.spritesBase}
+              nuzlocke={state.run.info.nuzlocke}
+              renderEditExtras={(slot) => <CopySlotButton position={slot.position} />}
+            />
+            <StoragePanel storage={state.storage} team={state.team} nuzlocke={state.run.info.nuzlocke} spritesBase={state.spritesBase} />
+          </div>
           <aside className="flex flex-col gap-5">
             <WidgetSettings config={state.run.config} widgetToken={state.run.widgetToken} slots={state.widgetSlots} spritesBase={state.spritesBase} />
             <ShowdownBox />
-            <HistoryList history={state.run.history} />
           </aside>
         </main>
       </div>

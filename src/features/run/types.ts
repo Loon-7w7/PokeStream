@@ -39,16 +39,9 @@ export interface WidgetConfig {
 
 export type WidgetConfigPatch = Partial<WidgetConfig>;
 
-export interface HistoryItem {
-  id: string;
-  message: string;
-  createdAt: string; // ISO
-}
-
 export interface RunOverview {
   id: string;
   info: RunInfo;
   config: WidgetConfig;
   widgetToken: string;
-  history: HistoryItem[];
 }

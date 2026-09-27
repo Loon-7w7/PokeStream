@@ -19,7 +19,16 @@ const STATS: [StatID, string][] = [
   ["spe", "Vel"],
 ];
 
-export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onClose: () => void; onSave: (p: Patch) => void }) {
+export interface EditSlotDialogProps {
+  slot: SlotView;
+  /** Acciones extra que inyecta quien compone (p. ej. "Copiar para Showdown"). */
+  extras?: React.ReactNode;
+  onClose: () => void;
+  onSave: (p: Patch) => void;
+  onRemove: () => void;
+}
+
+export function EditSlotDialog({ slot, extras, onClose, onSave, onRemove }: EditSlotDialogProps) {
   const dex = useDex();
   const species = dex?.species.find((s) => s.id === slot.species);
   const [advanced, setAdvanced] = useState(!!(slot.evs || slot.ivs));
@@ -28,14 +37,12 @@ export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onCl
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     const str = (k: string) => String(f.get(k) ?? "").trim();
-    const num = (k: string) => Number(f.get(k));
     const stats = (prefix: string, def: number): StatsTable | null => {
       const t = Object.fromEntries(STATS.map(([k]) => [k, Number(f.get(`${prefix}-${k}`)) || 0])) as StatsTable;
       return Object.values(t).every((v) => v === def) ? null : t;
     };
     onSave({
       nickname: str("nickname"),
-      level: num("level"),
       ability: str("ability"),
       item: str("item"),
       nature: str("nature"),
@@ -53,9 +60,6 @@ export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onCl
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Field label="Mote" className="col-span-2">
             <input name="nickname" defaultValue={slot.nickname} maxLength={24} placeholder={slot.speciesName} className={input} autoFocus />
-          </Field>
-          <Field label="Nivel">
-            <input name="level" type="number" min={1} max={100} defaultValue={slot.level} className={input} />
           </Field>
           <Field label="Género">
             <select name="gender" defaultValue={slot.gender} className={input}>
@@ -110,13 +114,16 @@ export function EditSlotDialog({ slot, onClose, onSave }: { slot: SlotView; onCl
 
         <p className="text-xs text-muted">Los nombres van en inglés (como en Showdown). Los que no existan se ignoran.</p>
 
-        <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-lg border border-line px-4 py-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+          {extras}
+          <button type="button" onClick={onRemove} className="rounded-lg border border-line px-3 py-2 text-sm text-bad hover:border-bad">
+            Quitar del equipo
+          </button>
+          <button type="button" onClick={onClose} className="ml-auto rounded-lg border border-line px-4 py-2 text-sm">
             Cancelar
           </button>
           <button className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg">Guardar</button>
         </div>
-
         {/* Listas para autocompletar */}
         <datalist id="dl-abilities">
           {species?.abilities.map((a) => <option key={`s-${a}`} value={a} />)}

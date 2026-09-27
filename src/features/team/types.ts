@@ -14,3 +14,23 @@ export type SlotView = SlotData & SetDisplay;
 export type SlotPatch = Partial<Omit<SlotData, "position" | "species">>;
 
 export const TEAM_SIZE = 6;
+
+/** Pokémon fuera del equipo: la caja y los muertos del Nuzlocke. */
+export interface StoredSets {
+  box: PokemonSetData[];
+  graveyard: PokemonSetData[];
+}
+
+/** Un Pokémon guardado, listo para mostrar. `index` es su posición en la lista. */
+export interface StoredView {
+  index: number;
+  speciesName: string;
+  nickname: string;
+  spriteId: string;
+  shiny: boolean;
+}
+
+export interface StorageView {
+  box: StoredView[];
+  graveyard: StoredView[];
+}

@@ -59,14 +59,14 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 3. 🔒 Solo `core/pokedex` importa `@pkmn/*`. Si la librería cambia, solo se toca esa carpeta.
 4. 🔒 Solo `*.repository.ts` y la unidad de trabajo importan `@/core/db`. Los servicios nunca ven Prisma.
 5. 🔒 Todo módulo de servidor empieza con `import "server-only"` (build falla si llega al navegador).
-6. Cada tabla tiene **una** feature dueña: `Run` y `HistoryEntry` → run; `Slot` → team. Otra feature que necesite esos datos usa la API pública de la dueña.
+6. Cada tabla tiene **una** feature dueña: `Run` → run; `Slot` y `Storage` → team. Otra feature que necesite esos datos usa la API pública de la dueña.
 7. `process.env` solo se lee en `core/config/env.ts` (excepción: `proxy.ts`).
 
 ### Mutaciones
 8. **Toda** escritura pasa por `mutateRun()` (`features/run/server/unit-of-work.ts`), que:
-   exige admin → resuelve la run → ejecuta en **una transacción** junto con el historial → publica el evento de tiempo real **después** del commit.
+   exige admin → resuelve la run → ejecuta en **una transacción** → publica el evento de tiempo real **después** del commit.
 9. Los repositorios reciben `db` como **último** parámetro (por defecto el cliente global). Dentro de `mutateRun` se les pasa la transacción.
-10. Las reglas de negocio (debilitado/Nuzlocke, evolución, orden…) viven en `domain/` como funciones puras que devuelven `{ slot, message }`. Se testean sin BD.
+10. Las reglas de negocio (debilitado/Nuzlocke, evolución, orden…) viven en `domain/` como funciones puras que devuelven el slot nuevo. Se testean sin BD.
 
 ### Server actions
 11. Una action hace exactamente: **validar con zod → llamar a un caso de uso → devolver `ActionResult`** vía `runAction()`. Sin lógica.
@@ -96,7 +96,7 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 ## 3. Flujos
 
 **Reemplazo rápido**
-`TeamSection` (R / botón) → `SpeciesPicker` → `replaceSpecies` action → zod → `team.service.replaceSpecies` → `mutateRun` [ `domain.placeSpecies` → `slot.repository.saveSlot` → historial ] commit → `bus.publish` → SSE → widget se repinta · `refresh()` → panel se repinta.
+`TeamSection` (R / botón) → `SpeciesPicker` → `replaceSpecies` action → zod → `team.service.replaceSpecies` → `mutateRun` [ `domain.placeSpecies` → `slot.repository.saveSlot` ] commit → `bus.publish` → SSE → widget se repinta · `refresh()` → panel se repinta.
 
 **Widget en OBS**
 `/widget/[token]` (SSR con estado inicial) → `EventSource /api/stream/[token]` → `widget.service.createWidgetStream` → en cada evento: valida token (revocado → `revoked`) → `getWidgetState` → `event: state`.
@@ -105,7 +105,7 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 
 | Quiero… | Dónde |
 |---|---|
-| Nueva regla de juego (p. ej. límite de nivel) | `features/team/domain/slot.ts` + test |
+| Nueva regla de juego (p. ej. cláusula de especies) | `features/team/domain/slot.ts` + test |
 | Nuevo campo en un slot | migración → `SlotData` → `slot.repository` (toSlot/toRow) → zod en `team/actions.ts` → UI |
 | Nueva opción visual del widget | migración (columna en Run) → `WidgetConfig` + `toWidgetConfig` → zod en `run/actions.ts` → `WidgetSettings` → `Widget` |
 | Nuevo layout (torre, burbujas) | componente en `features/widget/ui/`, elegir por `config.layout` |

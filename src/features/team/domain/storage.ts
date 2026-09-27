@@ -1,0 +1,24 @@
+// Reglas de la caja y de los muertos. DOMINIO PURO.
+import type { PokemonSetData } from "@/core/pokedex/types";
+import { fail } from "@/core/result";
+import type { SlotData, StoredSets } from "../types";
+import { destinationOf, toSet, type SlotRules } from "./slot";
+
+/** Guarda en la caja (o en Muertos) a los Pokémon que salen del equipo. Los slots vacíos se ignoran. */
+export function stash(storage: StoredSets, leaving: SlotData[], rules: SlotRules): StoredSets {
+  const next = { box: [...storage.box], graveyard: [...storage.graveyard] };
+  for (const slot of leaving) if (slot.species) next[destinationOf(slot, rules)].push(toSet(slot));
+  return next;
+}
+
+/** Saca un Pokémon de la caja. */
+export function takeFromBox(storage: StoredSets, index: number): { set: PokemonSetData; storage: StoredSets } {
+  const set = storage.box[index] ?? fail("NOT_FOUND", "Ese Pokémon ya no está en la caja");
+  return { set, storage: { ...storage, box: storage.box.filter((_, i) => i !== index) } };
+}
+
+/** Borra una entrada de la caja o de Muertos. */
+export function removeStored(storage: StoredSets, list: keyof StoredSets, index: number): StoredSets {
+  if (!storage[list][index]) fail("NOT_FOUND", "Ese Pokémon ya no está guardado");
+  return { ...storage, [list]: storage[list].filter((_, i) => i !== index) };
+}

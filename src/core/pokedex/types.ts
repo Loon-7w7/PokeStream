@@ -18,7 +18,6 @@ export interface SpeciesInfo {
 export interface PokemonSetData {
   species: string;
   nickname: string;
-  level: number;
   ability: string;
   item: string;
   nature: string;

@@ -3,7 +3,6 @@ import { bus, channels } from "@/core/realtime/bus";
 import { fail } from "@/core/result";
 import type { RunInfo, RunOverview, WidgetConfig, WidgetConfigPatch } from "../types";
 import { getCurrentRun, newWidgetToken } from "./current-run";
-import { listHistory } from "./history.repository";
 import * as runs from "./run.repository";
 import { mutateRun } from "./unit-of-work";
 
@@ -16,7 +15,6 @@ export async function getRunOverview(): Promise<RunOverview> {
     info: runs.toRunInfo(run),
     config: runs.toWidgetConfig(run),
     widgetToken: run.widgetToken,
-    history: await listHistory(run.id),
   };
 }
 
@@ -35,9 +33,8 @@ export async function isWidgetTokenValid(runId: string, token: string) {
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);
 
 export const updateRunInfo = (info: Partial<RunInfo>) =>
-  mutateRun(async ({ db, runId, log }) => {
+  mutateRun(async ({ db, runId }) => {
     await runs.updateRunInfo(runId, info, db);
-    if (info.nuzlocke !== undefined) log(info.nuzlocke ? "Modo Nuzlocke activado" : "Modo Nuzlocke desactivado");
   });
 
 export const updateWidgetConfig = (patch: WidgetConfigPatch) =>
@@ -47,7 +44,6 @@ export const updateWidgetConfig = (patch: WidgetConfigPatch) =>
   });
 
 export const regenerateWidgetToken = () =>
-  mutateRun(async ({ db, runId, log }) => {
+  mutateRun(async ({ db, runId }) => {
     await runs.updateWidgetToken(runId, newWidgetToken(), db);
-    log("URL del widget regenerada (la anterior dejó de funcionar)");
   });

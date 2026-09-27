@@ -1,6 +1,6 @@
 "use client";
 // Sección del equipo: cuadrícula reordenable, atajos de teclado, diálogos y UI optimista.
-import { useEffect, useOptimistic, useState } from "react";
+import { useEffect, useId, useOptimistic, useState } from "react";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { useAction } from "@/core/ui/actions";
@@ -19,11 +19,11 @@ export interface TeamSectionProps {
   spritesBase: string;
   /** Modo Nuzlocke de la run: un debilitado no puede revivir. */
   nuzlocke: boolean;
-  /** Opciones extra para el menú de cada tarjeta (las inyecta el dashboard). */
-  renderMenuExtras?: (slot: SlotView) => React.ReactNode;
+  /** Acciones extra en el diálogo Editar de cada Pokémon (las inyecta el dashboard). */
+  renderEditExtras?: (slot: SlotView) => React.ReactNode;
 }
 
-export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderMenuExtras }: TeamSectionProps) {
+export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderEditExtras }: TeamSectionProps) {
   const { run } = useAction();
   const [slots, applyOptimistic] = useOptimistic(serverSlots, (current: SlotView[], action: Optimistic) =>
     action.type === "reorder"
@@ -32,6 +32,8 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderM
   );
   const [selected, setSelected] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
+  // id estable entre servidor y cliente: sin él, dnd-kit genera aria-describedby distintos (error de hidratación)
+  const dndId = useId();
 
   const patch = (position: number, p: SlotPatch) =>
     run(() => A.updateSlot(position, p), () => applyOptimistic({ type: "patch", position, patch: p }));
@@ -79,7 +81,7 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderM
         </span>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={ids} strategy={rectSortingStrategy}>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {slots.map((s, i) => (
@@ -94,7 +96,6 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderM
                 onReplace={() => setDialog({ kind: "replace", position: s.position })}
                 onEdit={() => setDialog({ kind: "edit", position: s.position })}
                 onPatch={(p) => patch(s.position, p)}
-                menuExtras={renderMenuExtras?.(s)}
               />
             ))}
           </div>
@@ -118,7 +119,15 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderM
       {dialog?.kind === "edit" && dialogSlot?.species && (
         <EditSlotDialog
           slot={dialogSlot}
+          extras={renderEditExtras?.(dialogSlot)}
           onClose={() => setDialog(null)}
+          onRemove={() => {
+            const destination = nuzlocke && dialogSlot.fainted ? "Muertos" : "la caja";
+            if (!confirm(`¿Quitar a ${dialogSlot.nickname || dialogSlot.speciesName} del equipo? Irá a ${destination}.`)) return;
+            const position = dialog.position;
+            setDialog(null);
+            run(() => A.clearSlot(position));
+          }}
           onSave={(p) => {
             const position = dialog.position;
             setDialog(null);

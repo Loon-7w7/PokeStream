@@ -14,6 +14,6 @@ export async function exportTeam(position?: number): Promise<string> {
 export async function importTeam(text: string): Promise<{ imported: number; warnings: string[] }> {
   const { sets, warnings } = parseShowdown(text);
   if (!sets.length) fail("INVALID", warnings.join(" · ") || "No se encontró ningún Pokémon.");
-  await replaceTeam(sets, `Equipo importado desde Showdown (${sets.length} Pokémon)`);
+  await replaceTeam(sets);
   return { imported: sets.length, warnings };
 }

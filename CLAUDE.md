@@ -19,7 +19,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 3. Grafo permitido: `auth ← run ← team ← showdown`; `widget → run, team`; `dashboard → todas`. Cambiarlo = editar `ALLOWED` en `scripts/check-architecture.mjs`.
 4. Solo `core/pokedex` importa `@pkmn/*`. Solo `*.repository.ts` y `unit-of-work.ts` importan `@/core/db`.
 5. Todo archivo de servidor empieza con `import "server-only";`.
-6. Toda escritura va por `mutateRun(({ db, runId, log }) => …)`: auth + transacción + historial + evento SSE. Repos reciben `db` como último parámetro.
+6. Toda escritura va por `mutateRun(({ db, runId, nuzlocke }) => …)`: auth + transacción + evento SSE. Repos reciben `db` como último parámetro.
 7. Server action = `runAction(() => service(zodSchema.parse(input)), { refresh: true })`. Nunca lanza; errores esperados con `fail("CODE", "mensaje")`.
 8. En BD van IDs (`heavydutyboots`), nunca nombres. `describeSet()` da los nombres.
 9. El cliente no copia estado del servidor: props + `refresh()`; `useOptimistic` para respuesta instantánea.
@@ -28,7 +28,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 ## Mapa
 | Ruta | Qué hay |
 |---|---|
-| `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run), `HistoryEntry` |
+| `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run, sin nivel: todo es nivel 50), `Storage` (caja y muertos como texto Showdown) |
 | `src/app/` | Rutas delgadas: `/` panel, `/login`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/dex` |
 | `src/core/pokedex/server.ts` | `getSpeciesInfo`, `resolveId`, `describeSet`, `buildDexIndex` |
 | `src/core/pokedex/showdown.ts` | `formatShowdown` / `parseShowdown` |
@@ -36,10 +36,10 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
 | `features/auth` | `requireAdmin`, `verifyToken`, login/logout, `LoginForm` |
-| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info, config del widget, historial, `RunHeader`, `HistoryList` |
-| `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado/nivel + regla Nuzlocke), `validateOrder` |
-| `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts` |
-| `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog` |
+| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info, config del widget, `RunHeader` |
+| `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
+| `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
+| `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos) |
 | `features/showdown` | Exportar/importar; `ShowdownBox`, `CopySlotButton` |
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots, posiciones en `Run.slotPositions`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |

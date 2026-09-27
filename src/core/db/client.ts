@@ -15,4 +15,4 @@ if (env.NODE_ENV !== "production") g.prisma = prisma;
 /** Cliente o transacción: los repositorios reciben esto para poder componerse en una transacción. */
 export type Db = Prisma.TransactionClient;
 
-export type { Run as RunRow, Slot as SlotRow, HistoryEntry as HistoryRow } from "@/generated/prisma/client";
+export type { Run as RunRow, Slot as SlotRow } from "@/generated/prisma/client";

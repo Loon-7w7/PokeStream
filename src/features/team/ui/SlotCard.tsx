@@ -1,5 +1,5 @@
 "use client";
-// Tarjeta de un slot: reemplazo rápido, evolución, debilitado y menú.
+// Tarjeta de un slot: reemplazo rápido, evolución y debilitado. El resto de opciones está en Editar.
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -22,8 +22,6 @@ export interface SlotCardProps {
   onEdit: () => void;
   /** Cambio con respuesta instantánea (useOptimistic) + guardado en servidor. */
   onPatch: (patch: SlotPatch) => void;
-  /** Opciones extra del menú que inyecta quien compone (p. ej. "Copiar para Showdown"). */
-  menuExtras?: React.ReactNode;
 }
 
 export function SlotCard(props: SlotCardProps) {
@@ -72,7 +70,7 @@ export function SlotCard(props: SlotCardProps) {
             <button onClick={props.onEdit} className="rounded-lg border border-line px-3 py-2 text-sm hover:border-accent">
               Editar
             </button>
-            <SlotMenu slot={slot} onPatch={props.onPatch} extras={props.menuExtras} />
+            {slot.evos.length > 0 && <EvolveButton slot={slot} />}
           </>
         )}
       </div>
@@ -81,7 +79,6 @@ export function SlotCard(props: SlotCardProps) {
 }
 
 function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) {
-  const { run } = useAction();
   return (
     <>
       <div className="flex gap-3">
@@ -122,21 +119,50 @@ function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) 
         </ul>
       )}
 
-      {slot.evos.length > 0 && (
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs" onClick={(e) => e.stopPropagation()}>
-          <span className="text-muted">Evolucionar:</span>
+    </>
+  );
+}
+
+/** Evolucionar: directo si hay una sola evolución; si hay varias (ej. Eevee), menú para elegir. */
+function EvolveButton({ slot }: { slot: SlotView }) {
+  const { run } = useAction();
+  const [open, setOpen] = useState(false);
+  const evolve = (id: string) => run(() => A.evolveSlot(slot.position, id));
+  const [only] = slot.evos;
+  const btn = "rounded-lg border border-ok/50 px-3 py-2 text-sm text-ok hover:bg-ok/10";
+
+  if (slot.evos.length === 1) {
+    return (
+      <button onClick={() => evolve(only.id)} title={`Evolucionar a ${only.name}`} className={btn}>
+        Evolucionar
+      </button>
+    );
+  }
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen((o) => !o)} className={btn} aria-expanded={open}>
+        Evolucionar ▾
+      </button>
+      {open && (
+        <div
+          className="absolute bottom-full left-0 z-20 mb-1 max-h-64 w-44 overflow-y-auto rounded-lg border border-line bg-panel text-sm shadow-xl"
+          onMouseLeave={() => setOpen(false)}
+        >
           {slot.evos.map((e) => (
             <button
               key={e.id}
-              onClick={() => run(() => A.evolveSlot(slot.position, e.id))}
-              className="rounded-md border border-line px-2 py-0.5 hover:border-ok hover:text-ok"
+              onClick={() => {
+                setOpen(false);
+                evolve(e.id);
+              }}
+              className="block w-full px-3 py-2 text-left hover:bg-card hover:text-ok"
             >
               {e.name}
             </button>
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -161,42 +187,5 @@ function FaintButton({ fainted, nuzlocke, onPatch }: { fainted: boolean; nuzlock
     >
       {fainted ? "Debilitado · Revivir" : "Debilitar"}
     </button>
-  );
-}
-
-function SlotMenu({ slot, onPatch, extras }: { slot: SlotView; onPatch: (p: SlotPatch) => void; extras?: React.ReactNode }) {
-  const { run } = useAction();
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="rounded-lg border border-line px-3 py-2 text-sm hover:border-accent" aria-label="Más opciones">
-        ⋯
-      </button>
-      {open && (
-        <div
-          className="absolute bottom-full right-0 z-20 mb-1 w-52 overflow-hidden rounded-lg border border-line bg-panel text-sm shadow-xl [&_button]:block [&_button]:w-full [&_button]:px-3 [&_button]:py-2 [&_button]:text-left [&_button:hover]:bg-card"
-          onMouseLeave={() => setOpen(false)}
-        >
-          {extras}
-          <button
-            onClick={() => {
-              setOpen(false);
-              onPatch({ shiny: !slot.shiny });
-            }}
-          >
-            {slot.shiny ? "Quitar shiny" : "Marcar shiny"}
-          </button>
-          <button
-            className="text-bad"
-            onClick={() => {
-              setOpen(false);
-              if (confirm(`¿Quitar a ${slot.nickname || slot.speciesName} del equipo?`)) run(() => A.clearSlot(slot.position));
-            }}
-          >
-            Quitar del equipo
-          </button>
-        </div>
-      )}
-    </div>
   );
 }

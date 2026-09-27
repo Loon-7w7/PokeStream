@@ -6,6 +6,9 @@ import type { PokemonSetData, StatsTable } from "./types";
 
 /** Códec del formato de texto de Pokémon Showdown <-> PokemonSetData (con IDs). */
 
+/** Todos los Pokémon de la app son nivel 50 (el nivel no se guarda). */
+export const LEVEL = 50;
+
 export function formatShowdown(sets: PokemonSetData[]): string {
   return sets
     .map((set) => {
@@ -16,7 +19,7 @@ export function formatShowdown(sets: PokemonSetData[]): string {
         species: d.speciesName,
         item: d.itemName || undefined,
         ability: d.abilityName || undefined,
-        level: set.level !== 100 ? set.level : undefined,
+        level: LEVEL,
         gender: set.gender || undefined,
         shiny: set.shiny || undefined,
         teraType: set.teraType || undefined,
@@ -34,7 +37,6 @@ export function formatShowdown(sets: PokemonSetData[]): string {
 const ZERO: StatsTable = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
 const MAX_IV: StatsTable = { hp: 31, atk: 31, def: 31, spa: 31, spd: 31, spe: 31 };
 const allEqual = (t: Partial<StatsTable> | undefined, v: number) => !t || Object.values(t).every((n) => n === v);
-const clampLevel = (n: number) => Math.min(100, Math.max(1, Math.round(n) || 1));
 
 export interface ParseResult {
   sets: PokemonSetData[];
@@ -42,7 +44,7 @@ export interface ParseResult {
 }
 
 /** Lee un texto de Showdown. Lo desconocido se descarta con un aviso en español. */
-export function parseShowdown(text: string, max = 6): ParseResult {
+export function parseShowdown(text: string, max: number = 6): ParseResult {
   const warnings: string[] = [];
   const raw = Teams.importTeam(text)?.team ?? [];
   const sets: PokemonSetData[] = [];
@@ -69,7 +71,6 @@ export function parseShowdown(text: string, max = 6): ParseResult {
     sets.push({
       species: species.id,
       nickname: r.name && r.name !== species.name ? r.name.slice(0, 24) : "",
-      level: clampLevel(r.level ?? 100),
       ability: resolveId("ability", r.ability ?? "") || species.defaultAbilityId,
       item,
       nature: resolveId("nature", r.nature ?? ""),

@@ -2,10 +2,12 @@ import "server-only";
 import { describeSet, getSpeciesInfo, resolveId, resolveType } from "@/core/pokedex/server";
 import type { PokemonSetData, SpeciesInfo } from "@/core/pokedex/types";
 import { fail } from "@/core/result";
-import { getCurrentRun, mutateRun } from "@/features/run";
+import { getCurrentRun, mutateRun, type MutationContext } from "@/features/run";
 import * as domain from "../domain/slot";
-import { TEAM_SIZE, type SlotData, type SlotPatch, type SlotView } from "../types";
+import * as box from "../domain/storage";
+import { TEAM_SIZE, type SlotData, type SlotPatch, type SlotView, type StorageView } from "../types";
 import * as slots from "./slot.repository";
+import * as storage from "./storage.repository";
 
 /** Casos de uso de team: orquestan pokedex + dominio + repositorio dentro de mutateRun. */
 
@@ -14,9 +16,20 @@ const toView = (slot: SlotData): SlotView => ({ ...slot, ...describeSet(slot) })
 function requireSpecies(id: string): SpeciesInfo {
   return getSpeciesInfo(id) ?? fail("NOT_FOUND", `Pokémon desconocido: "${id}"`);
 }
-const nameOf = (slot: SlotData) => (slot.species ? (getSpeciesInfo(slot.species)?.name ?? "") : "");
 
 // ---------- Lecturas ----------
+
+/** Caja y Muertos con lo mínimo para pintar el sprite. */
+export async function getStorageView(): Promise<StorageView> {
+  const run = await getCurrentRun();
+  const { box: boxed, graveyard } = await storage.getStorage(run.id);
+  const view = (list: PokemonSetData[]) =>
+    list.map((set, index) => {
+      const d = describeSet(set);
+      return { index, speciesName: d.speciesName, spriteId: d.spriteId, nickname: set.nickname, shiny: set.shiny };
+    });
+  return { box: view(boxed), graveyard: view(graveyard) };
+}
 
 export async function getTeamView(): Promise<SlotView[]> {
   const run = await getCurrentRun();
@@ -35,20 +48,26 @@ export async function getTeamSets(position?: number): Promise<PokemonSetData[]> 
 
 // ---------- Mutaciones ----------
 
+type Ctx = MutationContext;
+
+/** Manda a la caja (o a Muertos) a los Pokémon que salen del equipo. */
+async function stashLeaving({ db, runId, nuzlocke }: Ctx, leaving: SlotData[]) {
+  if (!leaving.some((s) => s.species)) return;
+  await storage.saveStorage(runId, box.stash(await storage.getStorage(runId, db), leaving, { nuzlocke }), db);
+}
+
 export const replaceSpecies = (position: number, speciesId: string) =>
-  mutateRun(async ({ db, runId, log }) => {
-    const prev = await slots.findSlot(runId, position, db);
-    const change = domain.placeSpecies(prev, requireSpecies(speciesId), nameOf(prev));
-    await slots.saveSlot(runId, change.slot, db);
-    log(change.message);
+  mutateRun(async (ctx) => {
+    const prev = await slots.findSlot(ctx.runId, position, ctx.db);
+    const species = requireSpecies(speciesId);
+    await stashLeaving(ctx, [prev]);
+    await slots.saveSlot(ctx.runId, domain.placeSpecies(prev, species), ctx.db);
   });
 
 export const evolveSlot = (position: number, speciesId: string) =>
-  mutateRun(async ({ db, runId, log }) => {
+  mutateRun(async ({ db, runId }) => {
     const prev = await slots.findSlot(runId, position, db);
-    const change = domain.evolve(prev, requireSpecies(speciesId), nameOf(prev));
-    await slots.saveSlot(runId, change.slot, db);
-    log(change.message);
+    await slots.saveSlot(runId, domain.evolve(prev, requireSpecies(speciesId)), db);
   });
 
 /** Entrada de edición: habilidad, objeto, etc. pueden venir como nombre legible o ID. */
@@ -70,34 +89,45 @@ function resolvePatch(input: SlotEditInput): SlotPatch {
 }
 
 export const updateSlot = (position: number, input: SlotEditInput) =>
-  mutateRun(async ({ db, runId, log, nuzlocke }) => {
+  mutateRun(async ({ db, runId, nuzlocke }) => {
     const prev = await slots.findSlot(runId, position, db);
-    if (!prev.species) fail("INVALID", "El slot está vacío");
-    const change = domain.applyPatch(prev, resolvePatch(input), requireSpecies(prev.species).name, { nuzlocke });
-    await slots.saveSlot(runId, change.slot, db);
-    log(change.message);
+    await slots.saveSlot(runId, domain.applyPatch(prev, resolvePatch(input), { nuzlocke }), db);
   });
 
 export const clearSlot = (position: number) =>
-  mutateRun(async ({ db, runId, log }) => {
-    const prev = await slots.findSlot(runId, position, db);
-    await slots.saveSlot(runId, domain.emptySlot(position), db);
-    if (prev.species) log(`${domain.slotLabel(prev, nameOf(prev))} salió del equipo`);
+  mutateRun(async (ctx) => {
+    const prev = await slots.findSlot(ctx.runId, position, ctx.db);
+    await stashLeaving(ctx, [prev]);
+    await slots.saveSlot(ctx.runId, domain.emptySlot(position), ctx.db);
   });
 
 export const reorderTeam = (order: number[]) =>
-  mutateRun(async ({ db, runId, log }) => {
+  mutateRun(async ({ db, runId }) => {
     await slots.reorderSlots(runId, domain.validateOrder(order), db);
-    log("Equipo reordenado");
   });
 
-/** Reemplaza los 6 slots con sets importados (los que falten quedan vacíos). */
-export const replaceTeam = (sets: PokemonSetData[], message: string) =>
-  mutateRun(async ({ db, runId, log }) => {
+/** Reemplaza los 6 slots con sets importados (los que falten quedan vacíos). El equipo anterior va a la caja. */
+export const replaceTeam = (sets: PokemonSetData[]) =>
+  mutateRun(async (ctx) => {
+    await stashLeaving(ctx, await slots.listSlots(ctx.runId, ctx.db));
     for (let position = 0; position < TEAM_SIZE; position++) {
       const set = sets[position];
-      const slot: SlotData = set && getSpeciesInfo(set.species) ? { ...set, position, fainted: false } : domain.emptySlot(position);
-      await slots.saveSlot(runId, slot, db);
+      const slot = set && getSpeciesInfo(set.species) ? domain.placeSet(set, position) : domain.emptySlot(position);
+      await slots.saveSlot(ctx.runId, slot, ctx.db);
     }
-    log(message);
+  });
+
+/** Caja -> equipo: el Pokémon entra al slot y el que estaba ahí va a la caja (o a Muertos). */
+export const withdrawFromBox = (index: number, position: number) =>
+  mutateRun(async ({ db, runId, nuzlocke }) => {
+    const prev = await slots.findSlot(runId, position, db);
+    const taken = box.takeFromBox(await storage.getStorage(runId, db), index);
+    await storage.saveStorage(runId, box.stash(taken.storage, [prev], { nuzlocke }), db);
+    await slots.saveSlot(runId, domain.placeSet(taken.set, position), db);
+  });
+
+/** Borra definitivamente un Pokémon de la caja o de Muertos. */
+export const releaseStored = (list: "box" | "graveyard", index: number) =>
+  mutateRun(async ({ db, runId }) => {
+    await storage.saveStorage(runId, box.removeStored(await storage.getStorage(runId, db), list, index), db);
   });

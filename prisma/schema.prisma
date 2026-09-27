@@ -32,7 +32,7 @@ model Run {
   animated     Boolean @default(true) // sprites GIF animados vs PNG estáticos
 
   slots     Slot[]
-  history   HistoryEntry[]
+  storage   Storage?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -46,7 +46,6 @@ model Slot {
   position  Int
   species   String  @default("")
   nickname  String  @default("")
-  level     Int     @default(50)
   ability   String  @default("")
   item      String  @default("")
   nature    String  @default("")
@@ -63,12 +62,11 @@ model Slot {
   @@unique([runId, position])
 }
 
-model HistoryEntry {
-  id        String   @id @default(cuid())
-  runId     String
-  run       Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
-  message   String
-  createdAt DateTime @default(now())
-
-  @@index([runId, createdAt])
+// Caja y Pokémon muertos (Nuzlocke) de la run, guardados como texto Showdown (compacto).
+// Todo Pokémon que sale del equipo va a `box`; si estaba muerto en Nuzlocke, a `graveyard`.
+model Storage {
+  runId     String @id
+  run       Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  box       String @default("")
+  graveyard String @default("")
 }

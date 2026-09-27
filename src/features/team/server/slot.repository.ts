@@ -19,7 +19,6 @@ function toSlot(row: SlotRow): SlotData {
     position: row.position,
     species: row.species,
     nickname: row.nickname,
-    level: row.level,
     ability: row.ability,
     item: row.item,
     nature: row.nature,

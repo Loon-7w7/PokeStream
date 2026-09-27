@@ -13,7 +13,6 @@ const Name = z.string().trim().max(64);
 const SlotEdit = z
   .object({
     nickname: z.string().trim().max(24),
-    level: z.number().int().min(1).max(100),
     ability: Name,
     item: Name,
     nature: Name,
@@ -44,6 +43,14 @@ export async function updateSlot(position: number, input: z.input<typeof SlotEdi
 
 export async function clearSlot(position: number) {
   return runAction(() => team.clearSlot(Position.parse(position)), opts);
+}
+
+export async function withdrawFromBox(index: number, position: number) {
+  return runAction(() => team.withdrawFromBox(z.number().int().min(0).parse(index), Position.parse(position)), opts);
+}
+
+export async function releaseStored(list: "box" | "graveyard", index: number) {
+  return runAction(() => team.releaseStored(z.enum(["box", "graveyard"]).parse(list), z.number().int().min(0).parse(index)), opts);
 }
 
 export async function reorderTeam(order: number[]) {
