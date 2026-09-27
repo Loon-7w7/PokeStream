@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createTestDatabaseUrl } from "../../../../test/db";
 
 vi.hoisted(() => {
-  process.env.ADMIN_TOKEN = ""; // sin login en tests
+  process.env.GOOGLE_CLIENT_ID = ""; // sin login en tests
 });
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 

@@ -1,12 +1,12 @@
+import { redirect } from "next/navigation";
 import { env } from "@/core/config/env";
-import { LoginForm } from "@/features/auth/ui";
+import { isAdmin, isAuthEnabled } from "@/features/auth";
+import { LoginCard } from "@/features/auth/ui";
 
 export const dynamic = "force-dynamic"; // APP_NAME se lee en tiempo de ejecución
 
-export default function LoginPage() {
-  return (
-    <div className="grid min-h-screen place-items-center bg-bg p-4 text-text">
-      <LoginForm appName={env.APP_NAME} />
-    </div>
-  );
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  if (!isAuthEnabled() || (await isAdmin())) redirect("/");
+  const { error } = await searchParams;
+  return <LoginCard appName={env.APP_NAME} error={error} />;
 }

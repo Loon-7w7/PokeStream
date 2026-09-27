@@ -20,11 +20,11 @@ Panel web para gestionar tu equipo Pokémon en directo y un widget transparente 
 Requisitos: Docker Desktop.
 
 ```powershell
-copy .env.example .env      # y cambia ADMIN_TOKEN
+copy .env.example .env      # y configura el login con Google (abajo)
 docker compose up -d --build
 ```
 
-Abre http://localhost:3000 y entra con tu `ADMIN_TOKEN`.
+Abre http://localhost:3000 y entra con tu cuenta de Google (o directo si el login está desactivado).
 
 - Ver logs: `docker compose logs -f`
 - Detener: `docker compose down` (los datos se conservan en el volumen `partyhud-data`)
@@ -61,16 +61,24 @@ npm run dev       # http://localhost:3000
 ## Arquitectura
 Monolito modular por features con dominio puro y reglas verificadas por ESLint y CI. Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Login con Google
+1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un **ID de cliente OAuth** de tipo *Aplicación web* (si te lo pide, configura antes la pantalla de consentimiento como *Externa* y añade tus correos como usuarios de prueba).
+2. En *URI de redireccionamiento autorizados* añade `http://localhost:3000/api/auth/google/callback` y, si lo publicas, `https://tu-dominio/api/auth/google/callback`.
+3. Copia el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, genera `SESSION_SECRET` y pon los correos en `ALLOWED_EMAILS`.
+
 ## Variables de entorno
 | Variable | Descripción |
 |---|---|
 | `APP_NAME` | Nombre visible de la app |
-| `ADMIN_TOKEN` | Contraseña del panel. Vacía = sin login (solo uso local) |
+| `APP_URL` | URL pública sin `/` final (`http://localhost:3000`). Con `https://` las cookies son `Secure` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Cliente OAuth de Google. Vacío = sin login (solo uso local) |
+| `SESSION_SECRET` | Firma de la cookie de sesión (32+ caracteres). Cambiarla cierra todas las sesiones |
+| `ALLOWED_EMAILS` | Correos con acceso, separados por comas. Todos comparten el mismo run |
 | `DATABASE_URL` | Ruta de SQLite. Docker la fija en `file:/app/data/app.db` |
 | `SPRITES_BASE_URL` | Base de los sprites (`https://play.pokemonshowdown.com/sprites/`) |
 
 ## Publicarlo más adelante
 - Pon un proxy con HTTPS delante (Caddy o Nginx). Con Nginx, desactiva el buffering en `/api/stream/` (la app ya envía `X-Accel-Buffering: no`).
-- Usa un `ADMIN_TOKEN` largo y aleatorio.
+- Añade `{APP_URL}/api/auth/google/callback` como URI de redirección en tu cliente OAuth de Google (uno por cada URL: local y producción).
 - Para varios usuarios harán falta login con Twitch/Kick y una run por usuario (ver "Pendiente" en `CLAUDE.md`).
 - Con varias instancias del servidor, implementa `RealtimeBus` (`src/core/realtime/bus.ts`) con Redis pub/sub.
