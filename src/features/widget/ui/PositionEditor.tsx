@@ -1,6 +1,7 @@
 "use client";
 // Editor de posiciones del modo libre: lienzo 1920x1080 escalado donde se arrastra cada slot.
 // Guarda al soltar; el widget de OBS se actualiza en vivo por SSE.
+import { Check, Grid3x3, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cx } from "@/core/ui/cx";
 import { Modal } from "@/core/ui/Modal";
@@ -127,6 +128,7 @@ export function PositionEditor(props: {
       <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
         <label className="flex cursor-pointer items-center gap-2">
           <input type="checkbox" checked={snap} onChange={(e) => setSnap(e.target.checked)} className="accent-accent" />
+          <Grid3x3 className="size-4 text-muted" />
           Ajustar a cuadrícula ({GRID} px)
         </label>
         {active !== null && (
@@ -134,10 +136,12 @@ export function PositionEditor(props: {
             #{active + 1} · x {positions[active].x} · y {positions[active].y}
           </span>
         )}
-        <button onClick={() => confirm("¿Volver a colocar los 6 slots en fila abajo?") && reset()} className="ml-auto rounded-lg border border-line px-3 py-1.5 hover:border-bad hover:text-bad">
+        <button onClick={() => confirm("¿Volver a colocar los 6 slots en fila abajo?") && reset()} className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 hover:border-bad hover:text-bad">
+          <RotateCcw className="size-4" />
           Restablecer
         </button>
-        <button onClick={props.onClose} className="rounded-lg bg-accent px-4 py-1.5 font-semibold text-bg">
+        <button onClick={props.onClose} className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 font-semibold text-bg">
+          <Check className="size-4" />
           Listo
         </button>
       </div>

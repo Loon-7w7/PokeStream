@@ -1,6 +1,7 @@
 "use client";
 // Composición del panel. El estado viene del servidor (props); las acciones hacen refresh()
 // y Next re-renderiza con datos nuevos. Cambios desde otra pestaña llegan por SSE -> router.refresh().
+import { CircleAlert, X } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
@@ -44,10 +45,11 @@ function ErrorBanner() {
   if (!error) return null;
   return (
     <div className="mx-auto mt-4 max-w-[1500px] px-4">
-      <div role="alert" className="flex items-center justify-between rounded-lg border border-bad/40 bg-bad/10 px-4 py-2 text-sm text-bad">
-        {error}
-        <button onClick={clearError} aria-label="Cerrar" className="px-2">
-          ✕
+      <div role="alert" className="flex items-center gap-2 rounded-lg border border-bad/40 bg-bad/10 px-4 py-2 text-sm text-bad">
+        <CircleAlert className="size-4 shrink-0" />
+        <span className="flex-1">{error}</span>
+        <button onClick={clearError} aria-label="Cerrar" className="rounded p-1 hover:bg-bad/15">
+          <X className="size-4" />
         </button>
       </div>
     </div>

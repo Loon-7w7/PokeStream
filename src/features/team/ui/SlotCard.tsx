@@ -1,5 +1,6 @@
 "use client";
 // Tarjeta de un slot: reemplazo rápido, evolución y debilitado. El resto de opciones está en Editar.
+import { ChevronDown, CircleArrowUp, GripVertical, HeartCrack, HeartPulse, Pencil, Plus, Replace, Skull, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -27,6 +28,7 @@ export interface SlotCardProps {
 export function SlotCard(props: SlotCardProps) {
   const { slot, selected } = props;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.id });
+  const canEvolve = !!slot.species && slot.evos.length > 0;
 
   return (
     <div
@@ -45,9 +47,10 @@ export function SlotCard(props: SlotCardProps) {
           {...attributes}
           {...listeners}
           title="Arrastra para reordenar"
-          className="cursor-grab touch-none rounded px-1 font-mono hover:bg-line active:cursor-grabbing"
+          className="cursor-grab touch-none rounded p-0.5 hover:bg-line active:cursor-grabbing"
+          aria-label="Arrastra para reordenar"
         >
-          ⠿
+          <GripVertical className="size-4" />
         </button>
         <span className="font-mono">#{slot.position + 1}</span>
         {slot.species && <FaintButton fainted={slot.fainted} nuzlocke={props.nuzlocke} onPatch={props.onPatch} />}
@@ -61,22 +64,40 @@ export function SlotCard(props: SlotCardProps) {
         </div>
       )}
 
-      <div className="mt-auto flex flex-wrap gap-2 pt-3" onClick={(e) => e.stopPropagation()}>
-        <button onClick={props.onReplace} className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg hover:brightness-110">
-          {slot.species ? "Reemplazar" : "Agregar Pokémon"}
+      {/* Cuadrícula fija de 3: con evolución 1+1+1; sin ella Reemplazar ocupa 2; slot vacío, Agregar ocupa 3 */}
+      <div
+        className={cx(
+          "mt-auto grid grid-cols-3 gap-2 pt-3",
+          // Con 3 botones: letra, iconos y relleno más pequeños para que no se corte el texto
+          canEvolve
+            ? "gap-1.5 text-xs [&>button]:gap-1 [&>button]:px-1.5 [&>button>svg]:size-3.5 [&>div>button]:gap-1 [&>div>button]:px-1.5 [&>div>button>svg]:size-3.5"
+            : "text-sm",
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={props.onReplace}
+          className={cx(ACTION, "bg-accent font-semibold text-bg hover:brightness-110", !slot.species ? "col-span-3" : !canEvolve && "col-span-2")}
+        >
+          {slot.species ? <Replace className="size-4 shrink-0" /> : <Plus className="size-4 shrink-0" />}
+          <span className="truncate">{slot.species ? "Reemplazar" : "Agregar Pokémon"}</span>
         </button>
         {slot.species && (
           <>
-            <button onClick={props.onEdit} className="rounded-lg border border-line px-3 py-2 text-sm hover:border-accent">
-              Editar
+            <button onClick={props.onEdit} className={cx(ACTION, "border border-line hover:border-accent")}>
+              <Pencil className="size-4 shrink-0" />
+              <span className="truncate">Editar</span>
             </button>
-            {slot.evos.length > 0 && <EvolveButton slot={slot} />}
+            {canEvolve && <EvolveButton slot={slot} />}
           </>
         )}
       </div>
     </div>
   );
 }
+
+/** Botón de la fila de acciones: llena su celda y recorta el texto si no cabe. */
+const ACTION = "inline-flex w-full min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2";
 
 function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) {
   return (
@@ -98,7 +119,12 @@ function Filled({ slot, spritesBase }: { slot: SlotView; spritesBase: string }) 
             {slot.types.map((t) => (
               <TypeBadge key={t} type={t} />
             ))}
-            {slot.shiny && <span className="text-xs text-warn">★ shiny</span>}
+            {slot.shiny && (
+              <span className="inline-flex items-center gap-0.5 text-xs text-warn">
+                <Sparkles className="size-3.5" />
+                shiny
+              </span>
+            )}
           </div>
           <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 text-xs">
             <dt className="text-muted">Habilidad</dt>
@@ -129,19 +155,22 @@ function EvolveButton({ slot }: { slot: SlotView }) {
   const [open, setOpen] = useState(false);
   const evolve = (id: string) => run(() => A.evolveSlot(slot.position, id));
   const [only] = slot.evos;
-  const btn = "rounded-lg border border-ok/50 px-3 py-2 text-sm text-ok hover:bg-ok/10";
+  const btn = cx(ACTION, "border border-ok/50 text-ok hover:bg-ok/10");
 
   if (slot.evos.length === 1) {
     return (
       <button onClick={() => evolve(only.id)} title={`Evolucionar a ${only.name}`} className={btn}>
-        Evolucionar
+        <CircleArrowUp className="size-4 shrink-0" />
+        <span className="truncate">Evolucionar</span>
       </button>
     );
   }
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <button onClick={() => setOpen((o) => !o)} className={btn} aria-expanded={open}>
-        Evolucionar ▾
+        <CircleArrowUp className="size-4 shrink-0" />
+        <span className="truncate">Evolucionar</span>
+        <ChevronDown className={cx("size-4 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
         <div
@@ -168,11 +197,12 @@ function EvolveButton({ slot }: { slot: SlotView }) {
 
 /** Debilitar / revivir. En Nuzlocke, un debilitado queda muerto (sin botón para revivir). */
 function FaintButton({ fainted, nuzlocke, onPatch }: { fainted: boolean; nuzlocke: boolean; onPatch: (p: SlotPatch) => void }) {
-  const base = "ml-auto rounded-md border px-2 py-0.5 font-semibold";
+  const base = "ml-auto inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-semibold";
   if (fainted && nuzlocke) {
     return (
       <span title="Modo Nuzlocke: no puede revivir" className={cx(base, "border-bad/60 bg-bad/15 text-bad")}>
-        💀 Muerto
+        <Skull className="size-3.5" />
+        Muerto
       </span>
     );
   }
@@ -185,6 +215,7 @@ function FaintButton({ fainted, nuzlocke, onPatch }: { fainted: boolean; nuzlock
       title={fainted ? "Volver al combate" : nuzlocke ? "Nuzlocke: no se podrá revivir" : "Marcar como debilitado"}
       className={cx(base, fainted ? "border-bad/60 bg-bad/15 text-bad hover:border-ok hover:bg-transparent hover:text-ok" : "border-line hover:border-bad hover:text-bad")}
     >
+      {fainted ? <HeartPulse className="size-3.5" /> : <HeartCrack className="size-3.5" />}
       {fainted ? "Debilitado · Revivir" : "Debilitar"}
     </button>
   );

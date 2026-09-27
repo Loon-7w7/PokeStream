@@ -1,5 +1,6 @@
 "use client";
 // Pestañas Caja / Muertos. A la caja llegan los que salen del equipo, los importados y los que se agregan a mano.
+import { ArrowUpFromLine, Package, Plus, Skull, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
 import { cx } from "@/core/ui/cx";
@@ -47,15 +48,18 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid w-full max-w-sm grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="tablist">
           <TabButton active={tab === "box"} onClick={() => switchTab("box")}>
+            <Package className="size-4" />
             Caja <Count n={storage.box.length} />
           </TabButton>
           <TabButton active={tab === "graveyard"} onClick={() => switchTab("graveyard")}>
-            💀 Muertos <Count n={storage.graveyard.length} />
+            <Skull className="size-4" />
+            Muertos <Count n={storage.graveyard.length} />
           </TabButton>
         </div>
         {tab === "box" && (
-          <button onClick={() => setPicking(true)} className="ml-auto rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-bg hover:brightness-110">
-            + Agregar a la caja
+          <button onClick={() => setPicking(true)} className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-bg hover:brightness-110">
+            <Plus className="size-4" />
+            Agregar a la caja
           </button>
         )}
       </div>
@@ -89,7 +93,10 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
           <div className="mb-2 font-semibold">{label(current)}</div>
           {tab === "box" && (
             <>
-              <div className="mb-1 text-xs text-muted">Llevar al equipo, en el slot:</div>
+              <div className="mb-1 inline-flex items-center gap-1 text-xs text-muted">
+                <ArrowUpFromLine className="size-3.5" />
+                Llevar al equipo, en el slot:
+              </div>
               <div className="grid max-w-sm grid-cols-6 gap-1">
                 {team.map((s) => (
                   <button
@@ -104,7 +111,8 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
               </div>
             </>
           )}
-          <button onClick={() => release(current)} className="mt-3 text-xs text-muted underline-offset-2 hover:text-bad hover:underline">
+          <button onClick={() => release(current)} className="mt-3 inline-flex items-center gap-1 text-xs text-muted underline-offset-2 hover:text-bad hover:underline">
+            <Trash2 className="size-3.5" />
             {tab === "box" ? "Soltar (borrar de la caja)" : "Borrar de Muertos"}
           </button>
         </div>
@@ -135,7 +143,7 @@ function slotTitle(s: SlotView, nuzlocke: boolean) {
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button role="tab" aria-selected={active} onClick={onClick} className={cx("rounded-md py-1.5", active ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text")}>
+    <button role="tab" aria-selected={active} onClick={onClick} className={cx("inline-flex items-center justify-center gap-1.5 rounded-md py-1.5", active ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text")}>
       {children}
     </button>
   );

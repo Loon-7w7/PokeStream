@@ -1,6 +1,7 @@
 "use client";
 // Edición completa de un slot. Los campos de texto aceptan nombres en inglés (formato Showdown);
 // el servidor los convierte a ID y descarta los que no existen.
+import { ChevronDown, ChevronRight, Save, Sparkles, UserMinus } from "lucide-react";
 import { useState } from "react";
 import { useDex } from "@/core/pokedex/useDex";
 import type { StatID, StatsTable } from "@/core/pokedex/types";
@@ -97,12 +98,15 @@ export function EditSlotDialog({ slot, extras, onClose, onSave, onRemove }: Edit
         </fieldset>
 
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="shiny" defaultChecked={slot.shiny} className="accent-warn" /> Shiny
+          <input type="checkbox" name="shiny" defaultChecked={slot.shiny} className="accent-warn" />
+          <Sparkles className="size-4 text-warn" />
+          Shiny
         </label>
 
         <div>
-          <button type="button" onClick={() => setAdvanced((a) => !a)} className="text-xs text-accent hover:underline">
-            {advanced ? "▾" : "▸"} EVs / IVs (opcional, para exportar a Showdown)
+          <button type="button" onClick={() => setAdvanced((a) => !a)} className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+            {advanced ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+            EVs / IVs (opcional, para exportar a Showdown)
           </button>
           {advanced && (
             <div className="mt-2 grid gap-2">
@@ -116,13 +120,17 @@ export function EditSlotDialog({ slot, extras, onClose, onSave, onRemove }: Edit
 
         <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
           {extras}
-          <button type="button" onClick={onRemove} className="rounded-lg border border-line px-3 py-2 text-sm text-bad hover:border-bad">
+          <button type="button" onClick={onRemove} className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm text-bad hover:border-bad">
+            <UserMinus className="size-4" />
             Quitar del equipo
           </button>
           <button type="button" onClick={onClose} className="ml-auto rounded-lg border border-line px-4 py-2 text-sm">
             Cancelar
           </button>
-          <button className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg">Guardar</button>
+          <button className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg">
+            <Save className="size-4" />
+            Guardar
+          </button>
         </div>
         {/* Listas para autocompletar */}
         <datalist id="dl-abilities">

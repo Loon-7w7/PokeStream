@@ -1,9 +1,6 @@
 // Tipos públicos de la feature "run" (una partida/sesión de stream). Puros.
 
 export interface RunInfo {
-  title: string;
-  game: string;
-  ruleset: string;
   /** Modo Nuzlocke: un Pokémon debilitado no puede revivir. */
   nuzlocke: boolean;
 }

@@ -134,7 +134,7 @@ export const releaseStored = (list: "box" | "graveyard", index: number) =>
     await storage.saveStorage(runId, box.removeStored(await storage.getStorage(runId, db), list, index), db);
   });
 
-/** Nueva partida: equipo, caja y Muertos vacíos; título, juego y reglas en blanco y Nuzlocke apagado. Todo o nada. */
+/** Nueva partida: equipo, caja y Muertos vacíos y Nuzlocke apagado. Todo o nada. */
 export const startNewGame = () =>
   mutateRun(async (ctx) => {
     for (let position = 0; position < TEAM_SIZE; position++) await slots.saveSlot(ctx.runId, domain.emptySlot(position), ctx.db);

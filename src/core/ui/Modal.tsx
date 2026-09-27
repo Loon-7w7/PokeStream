@@ -1,4 +1,5 @@
 "use client";
+import { X } from "lucide-react";
 import { useEffect } from "react";
 
 export function Modal(props: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean; xl?: boolean }) {
@@ -21,8 +22,8 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
       >
         <div className="mb-4 flex items-center justify-between gap-4">
           <h3 className="text-base font-semibold">{props.title}</h3>
-          <button onClick={props.onClose} className="rounded-md px-2 text-muted hover:text-text" aria-label="Cerrar">
-            ✕
+          <button onClick={props.onClose} className="rounded-md p-1 text-muted hover:bg-card hover:text-text" aria-label="Cerrar">
+            <X className="size-5" />
           </button>
         </div>
         {props.children}

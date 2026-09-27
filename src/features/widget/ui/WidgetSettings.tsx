@@ -1,5 +1,6 @@
 "use client";
 // Panel: URL para OBS, vista previa en vivo y ajustes visuales del widget.
+import { Check, Copy, KeyRound, Move, Rows3, type LucideIcon } from "lucide-react";
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
 import { regenerateWidgetToken, updateWidgetConfig } from "@/features/run/actions";
@@ -17,9 +18,9 @@ const TOGGLES: [BoolKey, string][] = [
   ["animated", "Sprites animados"],
 ];
 
-const LAYOUTS: [WidgetLayout, string][] = [
-  ["hud-bottom", "Fila abajo"],
-  ["free", "Posición libre"],
+const LAYOUTS: [WidgetLayout, string, LucideIcon][] = [
+  ["hud-bottom", "Fila abajo", Rows3],
+  ["free", "Posición libre", Move],
 ];
 
 const noopSubscribe = () => () => {};
@@ -53,8 +54,9 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
             setCopied(true);
             setTimeout(() => setCopied(false), 1200);
           }}
-          className="rounded-lg bg-accent-2 px-3 text-sm font-semibold text-white"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent-2 px-3 text-sm font-semibold text-white"
         >
+          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
           {copied ? "¡Copiada!" : "Copiar"}
         </button>
       </div>
@@ -66,21 +68,26 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
 
       <div className="mt-4 grid gap-2">
         <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="radiogroup" aria-label="Distribución">
-          {LAYOUTS.map(([value, label]) => (
+          {LAYOUTS.map(([value, label, Icon]) => (
             <button
               key={value}
               role="radio"
               aria-checked={config.layout === value}
               onClick={() => config.layout !== value && save({ layout: value })}
-              className={cx("rounded-md py-1.5", config.layout === value ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text")}
+              className={cx(
+                "inline-flex items-center justify-center gap-1.5 rounded-md py-1.5",
+                config.layout === value ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text",
+              )}
             >
+              <Icon className="size-4" />
               {label}
             </button>
           ))}
         </div>
         {config.layout === "free" && (
-          <button onClick={() => setEditing(true)} className="rounded-lg border border-accent/60 py-2 text-sm font-semibold text-accent hover:bg-accent/10">
-            ✥ Editar posiciones
+          <button onClick={() => setEditing(true)} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 py-2 text-sm font-semibold text-accent hover:bg-accent/10">
+            <Move className="size-4" />
+            Editar posiciones
           </button>
         )}
       </div>
@@ -113,8 +120,9 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
 
       <button
         onClick={() => confirm("La URL actual dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?") && run(regenerateWidgetToken)}
-        className="mt-4 text-xs text-muted underline-offset-2 hover:text-bad hover:underline"
+        className="mt-4 inline-flex items-center gap-1 text-xs text-muted underline-offset-2 hover:text-bad hover:underline"
       >
+        <KeyRound className="size-3.5" />
         Regenerar URL (si se filtró)
       </button>
 

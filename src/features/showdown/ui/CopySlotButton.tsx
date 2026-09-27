@@ -1,4 +1,5 @@
 "use client";
+import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
 import { exportShowdown } from "../actions";
@@ -10,7 +11,7 @@ export function CopySlotButton({ position }: { position: number }) {
   return (
     <button
       type="button"
-      className="rounded-lg border border-line px-3 py-2 text-sm hover:border-accent"
+      className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm hover:border-accent"
       onClick={async () => {
         const res = await run(() => exportShowdown(position));
         if (!res?.ok) return;
@@ -19,6 +20,7 @@ export function CopySlotButton({ position }: { position: number }) {
         setTimeout(() => setCopied(false), 1200);
       }}
     >
+      {copied ? <Check className="size-4 text-ok" /> : <Copy className="size-4" />}
       {copied ? "¡Copiado!" : "Copiar para Showdown"}
     </button>
   );

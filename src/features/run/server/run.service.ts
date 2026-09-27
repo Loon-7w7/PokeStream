@@ -43,9 +43,9 @@ export const updateWidgetConfig = (patch: WidgetConfigPatch) =>
     await runs.updateWidgetConfig(runId, patch, db);
   });
 
-/** Nueva partida: título, juego y reglas en blanco y Nuzlocke apagado. Se llama dentro de otra mutación. */
+/** Nueva partida: Nuzlocke apagado. Se llama dentro de otra mutación. */
 export const resetRunInfo = ({ db, runId }: MutationContext) =>
-  runs.updateRunInfo(runId, { title: "", game: "", ruleset: "", nuzlocke: false }, db);
+  runs.updateRunInfo(runId, { nuzlocke: false }, db);
 
 export const regenerateWidgetToken = () =>
   mutateRun(async ({ db, runId }) => {

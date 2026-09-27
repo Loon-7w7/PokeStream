@@ -5,7 +5,7 @@ import * as service from "./server/run.service";
 
 /** Server actions de run: validar -> servicio -> ActionResult. Sin lógica aquí. */
 
-const RunInfoInput = z.object({ title: z.string().trim().max(80), game: z.string().trim().max(60), ruleset: z.string().trim().max(120), nuzlocke: z.boolean() }).partial();
+const RunInfoInput = z.object({ nuzlocke: z.boolean() }).partial();
 
 export async function updateRunInfo(input: z.input<typeof RunInfoInput>) {
   return runAction(() => service.updateRunInfo(RunInfoInput.parse(input)), { refresh: true });

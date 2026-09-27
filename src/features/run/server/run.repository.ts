@@ -57,4 +57,4 @@ export function toWidgetConfig(row: RunRow): WidgetConfig {
   };
 }
 
-export const toRunInfo = (row: RunRow): RunInfo => ({ title: row.title, game: row.game, ruleset: row.ruleset, nuzlocke: row.nuzlocke });
+export const toRunInfo = (row: RunRow): RunInfo => ({ nuzlocke: row.nuzlocke });

@@ -12,9 +12,6 @@ datasource db {
 // El MVP usa una sola run activa (isActive = true).
 model Run {
   id          String   @id @default(cuid())
-  title       String   @default("Mi Nuzlocke")
-  game        String   @default("")
-  ruleset     String   @default("")
   isActive    Boolean  @default(true)
   nuzlocke    Boolean  @default(false) // debilitado = muerto: no se puede revivir
   widgetToken String   @unique // token de solo lectura para la URL de OBS

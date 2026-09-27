@@ -1,5 +1,6 @@
 "use client";
 // Exportar el equipo a texto de Showdown (copiar / descargar) e importar a la caja desde un texto pegado.
+import { Copy, Download, LoaderCircle, Package, Upload } from "lucide-react";
 import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
 import { Modal } from "@/core/ui/Modal";
@@ -35,13 +36,16 @@ export function ShowdownBox() {
     <div className="rounded-2xl border border-line bg-panel p-4">
       <h2 className="mb-3 font-semibold">Pokémon Showdown</h2>
       <div className="grid grid-cols-3 gap-2 text-sm">
-        <button onClick={() => exportTeam(false)} className="rounded-lg bg-accent px-3 py-2 font-semibold text-bg hover:brightness-110">
+        <button onClick={() => exportTeam(false)} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 font-semibold text-bg hover:brightness-110">
+          <Copy className="size-4" />
           Exportar
         </button>
-        <button onClick={() => exportTeam(true)} className="rounded-lg border border-line px-3 py-2 hover:border-accent">
-          Descargar .txt
+        <button onClick={() => exportTeam(true)} title="Descargar el equipo como .txt" className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 hover:border-accent">
+          <Download className="size-4" />
+          Descargar
         </button>
-        <button onClick={() => setImporting(true)} className="rounded-lg border border-line px-3 py-2 hover:border-accent">
+        <button onClick={() => setImporting(true)} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 hover:border-accent">
+          <Upload className="size-4" />
           Importar
         </button>
       </div>
@@ -89,7 +93,8 @@ function ImportDialog({ onClose, onDone }: { onClose: () => void; onDone: (messa
         <button onClick={onClose} className="rounded-lg border border-line px-4 py-2">
           Cancelar
         </button>
-        <button disabled={pending || !text.trim()} onClick={submit} className="rounded-lg bg-accent px-4 py-2 font-semibold text-bg disabled:opacity-50">
+        <button disabled={pending || !text.trim()} onClick={submit} className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 font-semibold text-bg disabled:opacity-50">
+          {pending ? <LoaderCircle className="size-4 animate-spin" /> : <Package className="size-4" />}
           Enviar a la caja
         </button>
       </div>
