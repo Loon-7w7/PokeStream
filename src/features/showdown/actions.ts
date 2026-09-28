@@ -1,12 +1,12 @@
 "use server";
 import { z } from "zod";
 import { runAction } from "@/core/action";
-import { requireAdmin } from "@/features/auth";
+import { requireUser } from "@/features/auth";
 import * as showdown from "./server/showdown.service";
 
 export async function exportShowdown(position?: number) {
   return runAction(async () => {
-    await requireAdmin();
+    await requireUser();
     return showdown.exportTeam(z.number().int().min(0).max(5).optional().parse(position));
   });
 }

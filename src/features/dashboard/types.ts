@@ -7,6 +7,8 @@ export interface DashboardState {
   appName: string;
   authEnabled: boolean;
   spritesBase: string;
+  /** Enlace de donación ("" = sin botón). */
+  kofiUrl: string;
   run: RunOverview;
   team: SlotView[];
   /** Caja y Muertos. */

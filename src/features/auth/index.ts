@@ -9,8 +9,8 @@ import * as sessions from "./server/session.repository";
 import type { LoginError } from "./types";
 
 /**
- * API pública de auth. Login con Google: entran los correos de ALLOWED_EMAILS
- * y todos comparten el mismo run. La cookie firmada apunta a una fila de Session.
+ * API pública de auth. Login con Google abierto a cualquier cuenta (salvo BLOCKED_EMAILS;
+ * con ALLOWED_EMAILS, beta cerrada). Cada correo es un usuario con su propia run. La cookie firmada apunta a una fila de Session.
  */
 
 export const SESSION_COOKIE = "session";
@@ -19,7 +19,11 @@ const OAUTH_COOKIE = "google_oauth"; // state + codeVerifier mientras dura el lo
 /** Sin GOOGLE_CLIENT_ID el panel queda abierto (solo uso local). */
 export const isAuthEnabled = () => env.GOOGLE_CLIENT_ID.length > 0;
 
-const isAllowed = (email: string) => env.ALLOWED_EMAILS.includes(email);
+/** Usuario único cuando no hay login (uso local). */
+export const LOCAL_USER = "local";
+
+const isAllowed = (email: string) =>
+  !env.BLOCKED_EMAILS.includes(email) && (env.ALLOWED_EMAILS.length === 0 || env.ALLOWED_EMAILS.includes(email));
 
 const cookieOptions = (maxAge: number) => ({
   httpOnly: true,
@@ -36,7 +40,7 @@ async function readSessionCookie() {
 
 /**
  * Correo con sesión válida: firma correcta, fila en BD sin expirar y correo permitido.
- * Quitarlo de ALLOWED_EMAILS o cerrar sesión la invalida al instante.
+ * Bloquear el correo o cerrar sesión la invalida al instante.
  * `cache`: una sola consulta por petición aunque se llame varias veces.
  */
 export const getSessionEmail = cache(async (): Promise<string | null> => {
@@ -47,13 +51,21 @@ export const getSessionEmail = cache(async (): Promise<string | null> => {
   return isAllowed(session.email) ? session.email : null;
 });
 
-export async function isAdmin(): Promise<boolean> {
-  return !isAuthEnabled() || (await getSessionEmail()) !== null;
+/** Correo del usuario actual (LOCAL_USER sin login) o null si no hay sesión válida. */
+export async function getCurrentUser(): Promise<string | null> {
+  return isAuthEnabled() ? getSessionEmail() : LOCAL_USER;
 }
 
-/** Obligatorio en toda mutación (lo aplica mutateRun). El proxy solo es una comprobación optimista. */
-export async function requireAdmin(): Promise<void> {
-  if (!(await isAdmin())) fail("UNAUTHORIZED", "Tu sesión expiró. Vuelve a entrar.");
+export async function isSignedIn(): Promise<boolean> {
+  return (await getCurrentUser()) !== null;
+}
+
+/**
+ * Obligatorio en toda lectura o mutación de datos de un usuario (lo aplican getCurrentRun y mutateRun).
+ * El proxy solo es una comprobación optimista.
+ */
+export async function requireUser(): Promise<string> {
+  return (await getCurrentUser()) ?? fail("UNAUTHORIZED", "Tu sesión expiró. Vuelve a entrar.");
 }
 
 /** Inicio del login: guarda state/verifier y devuelve la URL de Google a la que redirigir. */

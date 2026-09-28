@@ -85,7 +85,7 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 20. El bus es una interfaz (`RealtimeBus`). Para varias instancias, implementarla con Redis; nada más cambia.
 
 ### Identidad
-21. `getCurrentRun()` es el **único** lugar que decide qué run usa el usuario. Para multiusuario se cambia ahí (sesión → run) y se añade `ownerId` a `Run`.
+21. `getCurrentRun()` es el **único** lugar que decide qué run usa el usuario: la de su sesión (`Run.ownerEmail`, único). `mutateRun` resuelve la misma run dentro de su transacción, así un usuario nunca toca datos de otro.
 22. `requireAdmin()` es la autorización real; `proxy.ts` solo redirige para comodidad.
 
 ### Calidad
@@ -110,5 +110,5 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 | Nueva opción visual del widget | migración (columna en Run) → `WidgetConfig` + `toWidgetConfig` → zod en `run/actions.ts` → `WidgetSettings` → `Widget` |
 | Nuevo layout (torre, burbujas) | componente en `features/widget/ui/`, elegir por `config.layout` |
 | Nueva capacidad (p. ej. comandos de chat) | `features/chat/` con su `index.ts`; declarar sus dependencias en `ALLOWED` |
-| Multiusuario | `ownerId` en Run, `getCurrentRun()` desde la sesión, OAuth en `features/auth` |
+| Multiusuario | Hecho: `Run.ownerEmail`, `getCurrentRun()` desde la sesión, registro abierto en `features/auth` |
 | Varias instancias | implementar `RealtimeBus` con Redis en `core/realtime` |

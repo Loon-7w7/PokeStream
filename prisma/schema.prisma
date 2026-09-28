@@ -8,10 +8,11 @@ datasource db {
   provider = "sqlite"
 }
 
-// Una "run" = una partida/sesión de stream (ej. "Nuzlocke Escarlata #4").
-// El MVP usa una sola run activa (isActive = true).
+// Una "run" = el equipo, la caja y el widget de un streamer. Una por cuenta (ownerEmail).
+// ownerEmail null = run de antes del multiusuario; la reclama LEGACY_OWNER_EMAIL (o el usuario local).
 model Run {
   id          String   @id @default(cuid())
+  ownerEmail  String?  @unique
   isActive    Boolean  @default(true)
   nuzlocke    Boolean  @default(false) // debilitado = muerto: no se puede revivir
   widgetToken String   @unique // token de solo lectura para la URL de OBS

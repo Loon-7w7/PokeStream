@@ -1,15 +1,16 @@
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, Coffee } from "lucide-react";
+import Link from "next/link";
 import { Logo } from "@/core/ui/Logo";
 import { PokeballStage } from "@/core/ui/PokeballStage";
 import type { LoginError } from "../types";
 
 const MESSAGES: Record<LoginError, string> = {
   invalid_state: "El inicio de sesión caducó. Vuelve a entrar con Google.",
-  not_allowed: "Esa cuenta de Google no tiene acceso. Entra con una cuenta autorizada.",
+  not_allowed: "Esa cuenta de Google no tiene acceso. Prueba con otra cuenta.",
   google_failed: "No se pudo conectar con Google. Revisa tu conexión y vuelve a intentarlo.",
 };
 
-export function LoginCard({ appName, error }: { appName: string; error?: string }) {
+export function LoginCard({ appName, kofiUrl, error }: { appName: string; kofiUrl: string; error?: string }) {
   const message = error && error in MESSAGES ? MESSAGES[error as LoginError] : null;
   return (
     <PokeballStage center={<Logo size={52} />}>
@@ -31,6 +32,19 @@ export function LoginCard({ appName, error }: { appName: string; error?: string 
           {message}
         </p>
       )}
+
+      <p className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted">
+        <span>Gratis para cualquier streamer.</span>
+        <Link href="/privacidad" className="underline-offset-2 hover:text-text hover:underline">
+          Privacidad
+        </Link>
+        {kofiUrl && (
+          <a href={kofiUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-text">
+            <Coffee className="size-3.5" />
+            Apoya el proyecto en Ko-fi
+          </a>
+        )}
+      </p>
     </PokeballStage>
   );
 }

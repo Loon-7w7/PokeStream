@@ -13,6 +13,7 @@ const ALLOWED = {
   showdown: ["auth", "team"],
   widget: ["run", "team"],
   dashboard: ["auth", "run", "team", "showdown", "widget"],
+  legal: [],
 };
 
 /** Archivos que deben declarar `import "server-only"`. */

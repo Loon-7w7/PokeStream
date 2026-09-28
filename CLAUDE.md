@@ -1,6 +1,6 @@
 # PartyHUD — contexto para Claude
 
-Panel web + widget de OBS (SSE) que muestra el equipo Pokémon del streamer en vivo. Un usuario, Docker en Windows. Nombre provisional (`APP_NAME`).
+Panel web + widget de OBS (SSE) que muestra el equipo Pokémon del streamer en vivo. Multiusuario (una run por cuenta de Google), gratis con donaciones por Ko-fi. Docker; BD remota prevista: Turso. Nombre provisional (`APP_NAME`).
 
 ## Cómo trabajar aquí (ahorra tokens)
 - Lee solo los archivos que toque el cambio (usa el mapa de abajo). No explores `node_modules`, `src/generated` ni `.next`.
@@ -35,13 +35,14 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/pokedex/sprites.ts` | URLs de sprites `{SPRITES_BASE_URL}{ani|gen5|dex}[-shiny]/{spriteId}` |
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
-| `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), `ALLOWED_EMAILS`; `requireAdmin`, `isAdmin`, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
-| `features/run` | `getCurrentRun` (único punto de identidad), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`), config del widget, `RunHeader` (acepta `actions`) |
+| `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), registro abierto (`ALLOWED_EMAILS` opcional = beta cerrada, `BLOCKED_EMAILS`); `requireUser` (correo o `UNAUTHORIZED`), `isSignedIn`, `LOCAL_USER` sin login, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
+| `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`), config del widget, `RunHeader` (acepta `actions`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
 | `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos), `NewGameButton` (`startNewGame`) |
 | `features/showdown` | Exportar el equipo · importar a la caja (`addSetsToBox`); `ShowdownBox` (botones + diálogo de importar), `CopySlotButton` |
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots, posiciones en `Run.slotPositions`) |
+| `features/legal` | `PrivacyPolicy` (ruta pública `/privacidad`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |
 
@@ -55,4 +56,4 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 `npm run dev` · `npm run check` · `npm test` · `npm run db:migrate -- --name x` · `docker compose up -d --build`
 
 ## Pendiente
-Layouts torre/burbujas · vista pública para el chat · comandos `!equipo` Twitch/Kick · OAuth multiusuario · nombres en español.
+Layouts torre/burbujas · vista pública para el chat · comandos `!equipo` Twitch/Kick · borrar cuenta desde el panel · límite de peticiones por usuario · bus con Redis si hay varias instancias · nombres en español.

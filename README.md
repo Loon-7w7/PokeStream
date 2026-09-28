@@ -64,7 +64,7 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 ## Login con Google
 1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un **ID de cliente OAuth** de tipo *Aplicación web* (si te lo pide, configura antes la pantalla de consentimiento como *Externa* y añade tus correos como usuarios de prueba).
 2. En *URI de redireccionamiento autorizados* añade `http://localhost:3000/api/auth/google/callback` y, si lo publicas, `https://tu-dominio/api/auth/google/callback`.
-3. Copia el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, genera `SESSION_SECRET` y pon los correos en `ALLOWED_EMAILS`.
+3. Copia el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, genera `SESSION_SECRET` y pon tu correo en `LEGACY_OWNER_EMAIL` para conservar el equipo que ya tenías. El registro queda abierto a cualquier cuenta de Google.
 
 ## Variables de entorno
 | Variable | Descripción |
@@ -74,7 +74,11 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Cliente OAuth de Google. Vacío = sin login: en producción el servidor no arranca salvo con `ALLOW_NO_AUTH=true` |
 | `ALLOW_NO_AUTH` | `true` permite producción sin login (solo en tu red local) |
 | `SESSION_SECRET` | Firma de la cookie de sesión (32+ caracteres). Cambiarla cierra todas las sesiones; cerrar sesión borra la sesión de la BD |
-| `ALLOWED_EMAILS` | Correos con acceso, separados por comas. Todos comparten el mismo run |
+| `ALLOWED_EMAILS` | Opcional. Beta cerrada: solo esos correos pueden entrar. Vacío = registro abierto |
+| `BLOCKED_EMAILS` | Opcional. Correos que no pueden entrar |
+| `LEGACY_OWNER_EMAIL` | Correo que se queda con el equipo creado antes del multiusuario |
+| `KOFI_URL` | Enlace de donación (`https://`). Vacío = sin botón |
+| `CONTACT_EMAIL` | Contacto que aparece en `/privacidad` |
 | `DATABASE_URL` | SQLite local (`file:`; Docker la fija en `file:/app/data/app.db`) o libsql remoto (`libsql:`/`https:`/`wss:`; `http:`/`ws:` solo en localhost) |
 | `DATABASE_AUTH_TOKEN` | Token de la BD remota. Nunca dentro de la URL |
 | `SPRITES_BASE_URL` | Base de los sprites (`https://play.pokemonshowdown.com/sprites/`) |

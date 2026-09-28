@@ -10,17 +10,31 @@ export type { RunRow };
  * dentro de mutateRun se pasa la transacción.
  */
 
-export const findActiveRun = (db: Db = prisma) =>
-  db.run.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" } });
+export const findRunByOwner = (ownerEmail: string, db: Db = prisma) => db.run.findUnique({ where: { ownerEmail } });
 
-export const createRun = (widgetToken: string, db: Db = prisma) => db.run.create({ data: { widgetToken } });
+const createRun = (ownerEmail: string, widgetToken: string, db: Db) => db.run.create({ data: { ownerEmail, widgetToken } });
+
+/** Asigna la run de antes del multiusuario (sin dueño) a `ownerEmail`, si existe. */
+async function claimOrphanRun(ownerEmail: string, db: Db) {
+  const orphan = await db.run.findFirst({ where: { ownerEmail: null }, orderBy: { createdAt: "asc" } });
+  return orphan && db.run.update({ where: { id: orphan.id }, data: { ownerEmail } });
+}
+
+export interface OwnerRunOptions {
+  newToken: () => string;
+  /** Si no tiene run, ¿puede quedarse con la run sin dueño? */
+  claimOrphan: boolean;
+}
 
 /**
- * Run activa; si no existe, la crea. Leer y crear en la misma transacción evita
- * que dos instancias (o peticiones) contra la misma BD creen dos runs activas.
+ * Run del usuario; si no tiene, reclama la huérfana (si se permite) o crea una.
+ * `ownerEmail` es único en BD: dos peticiones simultáneas no pueden crear dos runs.
  */
-export function findOrCreateActiveRun(newToken: () => string, db?: Db): Promise<RunRow> {
-  const run = async (tx: Db) => (await findActiveRun(tx)) ?? createRun(newToken(), tx);
+export function findOrCreateRunForOwner(ownerEmail: string, opts: OwnerRunOptions, db?: Db): Promise<RunRow> {
+  const run = async (tx: Db) =>
+    (await findRunByOwner(ownerEmail, tx)) ??
+    (opts.claimOrphan ? await claimOrphanRun(ownerEmail, tx) : null) ??
+    createRun(ownerEmail, opts.newToken(), tx);
   return db ? run(db) : prisma.$transaction(run);
 }
 

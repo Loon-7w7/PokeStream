@@ -7,6 +7,16 @@ import { DEFAULT_SPRITES_BASE_URL } from "../pokedex/sprites";
  * el servidor falla con un mensaje claro en lugar de romperse en mitad de un directo.
  * Regla: no leer `process.env` en ningún otro archivo (excepción: src/proxy.ts).
  */
+const emailList = z
+  .string()
+  .default("")
+  .transform((list) =>
+    list
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  );
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   APP_NAME: z.string().trim().min(1).default("PartyHUD"),
@@ -15,16 +25,16 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().trim().default(""),
   GOOGLE_CLIENT_SECRET: z.string().trim().default(""),
   SESSION_SECRET: z.string().default(""),
-  /** Correos que pueden entrar al panel, separados por comas. */
-  ALLOWED_EMAILS: z
-    .string()
-    .default("")
-    .transform((list) =>
-      list
-        .split(",")
-        .map((email) => email.trim().toLowerCase())
-        .filter(Boolean),
-    ),
+  /** Beta cerrada: si tiene correos, solo esos pueden registrarse. Vacío = registro abierto. */
+  ALLOWED_EMAILS: emailList,
+  /** Correos que no pueden entrar (abuso). */
+  BLOCKED_EMAILS: emailList,
+  /** Dueño de la run creada antes del multiusuario: la recibe al entrar por primera vez. */
+  LEGACY_OWNER_EMAIL: z.string().trim().toLowerCase().default(""),
+  /** Enlace de donación. Vacío = sin botón. */
+  KOFI_URL: z.union([z.url({ protocol: /^https$/ }), z.literal("")]).default("https://ko-fi.com/lonyarts"),
+  /** Correo de contacto para la política de privacidad (solicitudes de borrado, etc.). */
+  CONTACT_EMAIL: z.union([z.email(), z.literal("")]).default(""),
   /** Solo local: permite arrancar en producción sin login (el panel queda abierto a quien llegue al puerto). */
   ALLOW_NO_AUTH: z.stringbool().default(false),
   /** SQLite local (`file:`) o libsql remoto. En remoto se exige transporte cifrado salvo en localhost. */
@@ -62,7 +72,6 @@ if (env.GOOGLE_CLIENT_ID) {
   const missing = [
     !env.GOOGLE_CLIENT_SECRET && "GOOGLE_CLIENT_SECRET",
     env.SESSION_SECRET.length < 32 && "SESSION_SECRET (mínimo 32 caracteres)",
-    env.ALLOWED_EMAILS.length === 0 && "ALLOWED_EMAILS",
   ].filter(Boolean);
   if (missing.length) throw new Error(`Login con Google incompleto. Falta: ${missing.join(", ")}`);
 } else if (env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {

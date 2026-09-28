@@ -34,7 +34,7 @@ export function Dashboard({ state }: { state: DashboardState }) {
             <ShowdownBox />
           </aside>
         </main>
-        <Footer />
+        <Footer kofiUrl={state.kofiUrl} />
       </div>
     </ActionProvider>
   );

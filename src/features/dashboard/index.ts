@@ -1,7 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { env } from "@/core/config/env";
-import { isAdmin, isAuthEnabled } from "@/features/auth";
+import { isAuthEnabled, isSignedIn } from "@/features/auth";
 import { getRunOverview } from "@/features/run";
 import { getStorageView, getTeamView } from "@/features/team";
 import { getWidgetState } from "@/features/widget";
@@ -13,13 +13,14 @@ import type { DashboardState } from "./types";
  */
 export async function getDashboardState(): Promise<DashboardState> {
   // El proxy solo ve que hay cookie; aquí se verifica la firma y el correo.
-  if (!(await isAdmin())) redirect("/login");
+  if (!(await isSignedIn())) redirect("/login");
   const run = await getRunOverview();
   const [team, storage, widget] = await Promise.all([getTeamView(), getStorageView(), getWidgetState(run.id)]);
   return {
     appName: env.APP_NAME,
     authEnabled: isAuthEnabled(),
     spritesBase: env.SPRITES_BASE_URL,
+    kofiUrl: env.KOFI_URL,
     run,
     team,
     storage,
