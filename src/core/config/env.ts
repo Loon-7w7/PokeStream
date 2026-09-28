@@ -25,9 +25,30 @@ const schema = z.object({
         .map((email) => email.trim().toLowerCase())
         .filter(Boolean),
     ),
-  DATABASE_URL: z.string().min(1).default("file:./data/app.db"),
+  /** Solo local: permite arrancar en producción sin login (el panel queda abierto a quien llegue al puerto). */
+  ALLOW_NO_AUTH: z.stringbool().default(false),
+  /** SQLite local (`file:`) o libsql remoto. En remoto se exige transporte cifrado salvo en localhost. */
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default("file:./data/app.db")
+    .refine(isSafeDatabaseUrl, "usa file:, libsql:, https: o wss: (http:/ws: solo en localhost)")
+    .refine((url) => !/authToken=/i.test(url), "no pongas el token en la URL: usa DATABASE_AUTH_TOKEN"),
+  /** Token de la BD remota (Turso/libsql). Vacío en SQLite local. */
+  DATABASE_AUTH_TOKEN: z.string().trim().default(""),
   SPRITES_BASE_URL: z.url().default(DEFAULT_SPRITES_BASE_URL),
 });
+
+function isSafeDatabaseUrl(url: string): boolean {
+  if (url.startsWith("file:")) return true;
+  try {
+    const { protocol, hostname } = new URL(url);
+    if (["libsql:", "https:", "wss:"].includes(protocol)) return true;
+    return ["http:", "ws:"].includes(protocol) && ["localhost", "127.0.0.1", "[::1]"].includes(hostname);
+  } catch {
+    return false;
+  }
+}
 
 const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
@@ -44,6 +65,10 @@ if (env.GOOGLE_CLIENT_ID) {
     env.ALLOWED_EMAILS.length === 0 && "ALLOWED_EMAILS",
   ].filter(Boolean);
   if (missing.length) throw new Error(`Login con Google incompleto. Falta: ${missing.join(", ")}`);
-} else if (env.NODE_ENV === "production") {
-  console.warn("[env] GOOGLE_CLIENT_ID vacío: el panel no pide login. Úsalo solo en tu red local.");
+} else if (env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build") {
+  // Falla cerrado: un .env incompleto no debe dejar el panel abierto a internet.
+  if (!env.ALLOW_NO_AUTH) {
+    throw new Error("Falta GOOGLE_CLIENT_ID: el panel quedaría sin login. Configúralo o pon ALLOW_NO_AUTH=true (solo en tu red local).");
+  }
+  console.warn("[env] ALLOW_NO_AUTH=true: el panel no pide login. Úsalo solo en tu red local.");
 }

@@ -2,7 +2,7 @@ import "server-only";
 import { bus, channels } from "@/core/realtime/bus";
 import { fail } from "@/core/result";
 import type { RunInfo, RunOverview, WidgetConfig, WidgetConfigPatch } from "../types";
-import { getCurrentRun, newWidgetToken } from "./current-run";
+import { getCurrentRun, isWidgetTokenFormat, newWidgetToken } from "./current-run";
 import * as runs from "./run.repository";
 import { mutateRun, type MutationContext } from "./unit-of-work";
 
@@ -18,16 +18,14 @@ export async function getRunOverview(): Promise<RunOverview> {
   };
 }
 
-export const findRunIdByWidgetToken = (token: string) => runs.findRunIdByToken(token);
+export const findRunIdByWidgetToken = async (token: string) => (isWidgetTokenFormat(token) ? runs.findRunIdByToken(token) : null);
+
+/** Token vigente de la run (null si la run no existe). */
+export const getWidgetToken = async (runId: string) => (await runs.findRunById(runId))?.widgetToken ?? null;
 
 export async function getWidgetConfig(runId: string): Promise<WidgetConfig | null> {
   const run = await runs.findRunById(runId);
   return run ? runs.toWidgetConfig(run) : null;
-}
-
-/** ¿El token sigue vigente para esa run? (deja de serlo al regenerarlo) */
-export async function isWidgetTokenValid(runId: string, token: string) {
-  return (await runs.findRunById(runId))?.widgetToken === token;
 }
 
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);

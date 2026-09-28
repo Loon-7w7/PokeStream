@@ -1,8 +1,11 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { createRun, findActiveRun, type RunRow } from "./run.repository";
+import { findActiveRun, findOrCreateActiveRun, type RunRow } from "./run.repository";
 
 export const newWidgetToken = () => randomBytes(18).toString("base64url");
+
+/** Formato de newWidgetToken (18 bytes = 24 caracteres base64url). Filtra basura sin consultar la BD. */
+export const isWidgetTokenFormat = (token: string) => /^[A-Za-z0-9_-]{24}$/.test(token);
 
 // Evita crear dos runs si varias lecturas llegan a la vez en el primer arranque
 let creating: Promise<RunRow> | null = null;
@@ -15,6 +18,6 @@ let creating: Promise<RunRow> | null = null;
 export async function getCurrentRun(): Promise<RunRow> {
   const existing = await findActiveRun();
   if (existing) return existing;
-  creating ??= createRun(newWidgetToken()).finally(() => (creating = null));
+  creating ??= findOrCreateActiveRun(newWidgetToken).finally(() => (creating = null));
   return creating;
 }

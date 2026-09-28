@@ -11,8 +11,14 @@ export function stash(storage: StoredSets, leaving: SlotData[], rules: SlotRules
   return next;
 }
 
+/** Tope de la caja para lo que se añade a mano o importado (evita que el texto crezca sin límite). */
+export const BOX_LIMIT = 500;
+
 /** Mete Pokémon directamente en la caja (importados o elegidos a mano). */
-export const addToBox = (storage: StoredSets, sets: PokemonSetData[]): StoredSets => ({ ...storage, box: [...storage.box, ...sets] });
+export function addToBox(storage: StoredSets, sets: PokemonSetData[]): StoredSets {
+  if (storage.box.length + sets.length > BOX_LIMIT) fail("CONFLICT", `La caja está llena (máximo ${BOX_LIMIT} Pokémon).`);
+  return { ...storage, box: [...storage.box, ...sets] };
+}
 
 /** Saca un Pokémon de la caja. */
 export function takeFromBox(storage: StoredSets, index: number): { set: PokemonSetData; storage: StoredSets } {

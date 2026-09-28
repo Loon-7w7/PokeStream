@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SpeciesInfo } from "@/core/pokedex/types";
 import { DomainError } from "@/core/result";
 import { emptySlot, placeSpecies } from "./slot";
-import { removeStored, stash, takeFromBox } from "./storage";
+import { BOX_LIMIT, addToBox, removeStored, stash, takeFromBox } from "./storage";
 
 const pikachu: SpeciesInfo = { id: "pikachu", name: "Pikachu", abilityIds: ["static"], defaultAbilityId: "static" };
 const empty = { box: [], graveyard: [] };
@@ -32,5 +32,14 @@ describe("takeFromBox / removeStored", () => {
   it("índice inexistente falla", () => {
     expect(() => takeFromBox(full, 9)).toThrow(DomainError);
     expect(() => removeStored(full, "graveyard", 0)).toThrow(DomainError);
+  });
+});
+
+describe("addToBox", () => {
+  it("no deja pasar del tope de la caja", () => {
+    const [set] = stash(empty, [alive], { nuzlocke: false }).box;
+    const full = { box: Array.from({ length: BOX_LIMIT }, () => set), graveyard: [] };
+    expect(() => addToBox(full, [set])).toThrow(DomainError);
+    expect(addToBox(empty, [set]).box).toHaveLength(1);
   });
 });

@@ -9,7 +9,7 @@ import { env } from "../config/env";
  */
 const g = globalThis as unknown as { prisma?: PrismaClient };
 
-export const prisma = g.prisma ?? new PrismaClient({ adapter: new PrismaLibSql({ url: env.DATABASE_URL }) });
+export const prisma = g.prisma ?? new PrismaClient({ adapter: new PrismaLibSql({ url: env.DATABASE_URL, authToken: env.DATABASE_AUTH_TOKEN || undefined }) });
 if (env.NODE_ENV !== "production") g.prisma = prisma;
 
 /** Cliente o transacción: los repositorios reciben esto para poder componerse en una transacción. */

@@ -70,7 +70,7 @@ export function parseShowdown(text: string, max: number = 6): ParseResult {
 
     sets.push({
       species: species.id,
-      nickname: r.name && r.name !== species.name ? r.name.slice(0, 24) : "",
+      nickname: r.name && r.name !== species.name ? r.name.replace(/[\p{Cc}@()]/gu, "").trim().slice(0, 24) : "",
       ability: resolveId("ability", r.ability ?? "") || species.defaultAbilityId,
       item,
       nature: resolveId("nature", r.nature ?? ""),

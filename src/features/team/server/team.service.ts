@@ -67,7 +67,11 @@ export const replaceSpecies = (position: number, speciesId: string) =>
 export const evolveSlot = (position: number, speciesId: string) =>
   mutateRun(async ({ db, runId }) => {
     const prev = await slots.findSlot(runId, position, db);
-    await slots.saveSlot(runId, domain.evolve(prev, requireSpecies(speciesId)), db);
+    const target = requireSpecies(speciesId);
+    if (prev.species && !describeSet(prev).evos.some((e) => e.id === target.id)) {
+      fail("INVALID", `${target.name} no es una evolución de este Pokémon`);
+    }
+    await slots.saveSlot(runId, domain.evolve(prev, target), db);
   });
 
 /** Entrada de edición: habilidad, objeto, etc. pueden venir como nombre legible o ID. */

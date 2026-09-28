@@ -51,8 +51,13 @@ export async function ensureSlots(runId: string, db: Db = prisma) {
 }
 
 export async function listSlots(runId: string, db: Db = prisma): Promise<SlotData[]> {
-  await ensureSlots(runId, db);
-  const rows = await db.slot.findMany({ where: { runId }, orderBy: { position: "asc" } });
+  const read = () => db.slot.findMany({ where: { runId }, orderBy: { position: "asc" } });
+  let rows = await read();
+  // Solo escribe la primera vez: las lecturas normales (widget público) son una sola consulta
+  if (rows.length < TEAM_SIZE) {
+    await ensureSlots(runId, db);
+    rows = await read();
+  }
   return rows.map(toSlot);
 }
 

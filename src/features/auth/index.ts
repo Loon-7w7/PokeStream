@@ -1,14 +1,16 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { env } from "@/core/config/env";
 import { fail } from "@/core/result";
 import { createGoogleAuthorization, getVerifiedEmail } from "./server/google";
-import { SESSION_MAX_AGE, createSessionValue, readSessionValue } from "./server/session";
+import { SESSION_MAX_AGE, createSessionValue, newSessionId, readSessionValue } from "./server/session";
+import * as sessions from "./server/session.repository";
 import type { LoginError } from "./types";
 
 /**
  * API pública de auth. Login con Google: entran los correos de ALLOWED_EMAILS
- * y todos comparten el mismo run. La sesión es una cookie firmada (sin BD).
+ * y todos comparten el mismo run. La cookie firmada apunta a una fila de Session.
  */
 
 export const SESSION_COOKIE = "session";
@@ -27,11 +29,23 @@ const cookieOptions = (maxAge: number) => ({
   maxAge,
 });
 
-/** Correo con sesión válida. Quitarlo de ALLOWED_EMAILS cierra su sesión al instante. */
-export async function getSessionEmail(): Promise<string | null> {
-  const session = readSessionValue((await cookies()).get(SESSION_COOKIE)?.value, env.SESSION_SECRET);
-  return session && isAllowed(session.email) ? session.email : null;
+/** Cookie firmada y vigente (sin tocar la BD). */
+async function readSessionCookie() {
+  return readSessionValue((await cookies()).get(SESSION_COOKIE)?.value, env.SESSION_SECRET);
 }
+
+/**
+ * Correo con sesión válida: firma correcta, fila en BD sin expirar y correo permitido.
+ * Quitarlo de ALLOWED_EMAILS o cerrar sesión la invalida al instante.
+ * `cache`: una sola consulta por petición aunque se llame varias veces.
+ */
+export const getSessionEmail = cache(async (): Promise<string | null> => {
+  const cookie = await readSessionCookie();
+  if (!cookie) return null;
+  const session = await sessions.findSession(cookie.sid);
+  if (!session || session.expiresAt.getTime() <= Date.now()) return null;
+  return isAllowed(session.email) ? session.email : null;
+});
 
 export async function isAdmin(): Promise<boolean> {
   return !isAuthEnabled() || (await getSessionEmail()) !== null;
@@ -69,6 +83,16 @@ export async function finishGoogleLogin(params: URLSearchParams): Promise<string
   }
   if (!email || !isAllowed(email)) return error("not_allowed");
 
-  jar.set(SESSION_COOKIE, createSessionValue(email, env.SESSION_SECRET), cookieOptions(SESSION_MAX_AGE));
+  const sid = newSessionId();
+  await sessions.deleteExpiredSessions(new Date());
+  await sessions.createSession(sid, email, new Date(Date.now() + SESSION_MAX_AGE * 1000));
+  jar.set(SESSION_COOKIE, createSessionValue(sid, env.SESSION_SECRET), cookieOptions(SESSION_MAX_AGE));
   return "/";
+}
+
+/** Logout: borra la sesión de la BD (la cookie robada deja de valer) y la cookie. */
+export async function endSession(): Promise<void> {
+  const cookie = await readSessionCookie();
+  if (cookie) await sessions.deleteSession(cookie.sid);
+  (await cookies()).delete(SESSION_COOKIE);
 }

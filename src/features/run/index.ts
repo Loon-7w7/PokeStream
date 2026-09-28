@@ -6,7 +6,7 @@ export {
   getRunOverview,
   getWidgetConfig,
   findRunIdByWidgetToken,
-  isWidgetTokenValid,
+  getWidgetToken,
   subscribeToRun,
   resetRunInfo,
 } from "./server/run.service";

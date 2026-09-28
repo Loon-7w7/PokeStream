@@ -7,12 +7,21 @@ import * as team from "./server/team.service";
 
 const Position = z.number().int().min(0).max(5);
 const Id = z.string().trim().min(1).max(64);
-const Stats = z.object({ hp: z.number(), atk: z.number(), def: z.number(), spa: z.number(), spd: z.number(), spe: z.number() });
+const stats = (max: number) => {
+  const n = z.number().int().min(0).max(max);
+  return z.object({ hp: n, atk: n, def: n, spa: n, spd: n, spe: n });
+};
 const Name = z.string().trim().max(64);
+/** Sin saltos de línea, "@" ni paréntesis: la caja se guarda como texto Showdown y romperían su formato. */
+const Nickname = z
+  .string()
+  .trim()
+  .max(24)
+  .regex(/^[^\p{Cc}@()]*$/u, "el mote no puede llevar @, paréntesis ni saltos de línea");
 
 const SlotEdit = z
   .object({
-    nickname: z.string().trim().max(24),
+    nickname: Nickname,
     ability: Name,
     item: Name,
     nature: Name,
@@ -21,8 +30,8 @@ const SlotEdit = z
     shiny: z.boolean(),
     fainted: z.boolean(),
     moves: z.array(Name).max(4),
-    evs: Stats.nullable(),
-    ivs: Stats.nullable(),
+    evs: stats(252).nullable(),
+    ivs: stats(31).nullable(),
   })
   .partial()
   .strict();

@@ -1,9 +1,8 @@
 "use server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE } from ".";
+import { endSession } from ".";
 
 export async function logout() {
-  (await cookies()).delete(SESSION_COOKIE);
+  await endSession();
   redirect("/login");
 }

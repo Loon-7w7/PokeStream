@@ -67,3 +67,13 @@ model Storage {
   box       String @default("")
   graveyard String @default("")
 }
+
+// Sesiones del panel. La cookie lleva el id firmado; borrar la fila cierra la sesión (logout real).
+model Session {
+  id        String   @id
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}

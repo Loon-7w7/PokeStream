@@ -71,10 +71,12 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 |---|---|
 | `APP_NAME` | Nombre visible de la app |
 | `APP_URL` | URL pública sin `/` final (`http://localhost:3000`). Con `https://` las cookies son `Secure` |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Cliente OAuth de Google. Vacío = sin login (solo uso local) |
-| `SESSION_SECRET` | Firma de la cookie de sesión (32+ caracteres). Cambiarla cierra todas las sesiones |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Cliente OAuth de Google. Vacío = sin login: en producción el servidor no arranca salvo con `ALLOW_NO_AUTH=true` |
+| `ALLOW_NO_AUTH` | `true` permite producción sin login (solo en tu red local) |
+| `SESSION_SECRET` | Firma de la cookie de sesión (32+ caracteres). Cambiarla cierra todas las sesiones; cerrar sesión borra la sesión de la BD |
 | `ALLOWED_EMAILS` | Correos con acceso, separados por comas. Todos comparten el mismo run |
-| `DATABASE_URL` | Ruta de SQLite. Docker la fija en `file:/app/data/app.db` |
+| `DATABASE_URL` | SQLite local (`file:`; Docker la fija en `file:/app/data/app.db`) o libsql remoto (`libsql:`/`https:`/`wss:`; `http:`/`ws:` solo en localhost) |
+| `DATABASE_AUTH_TOKEN` | Token de la BD remota. Nunca dentro de la URL |
 | `SPRITES_BASE_URL` | Base de los sprites (`https://play.pokemonshowdown.com/sprites/`) |
 
 ## Publicarlo más adelante

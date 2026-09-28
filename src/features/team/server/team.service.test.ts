@@ -69,6 +69,7 @@ describe("team.service (integración)", () => {
   it("un error de dominio no deja cambios a medias", async () => {
     const before = await team.getTeamView();
     await expect(team.evolveSlot(5, "haunter")).rejects.toThrow("El slot está vacío");
+    await expect(team.evolveSlot(1, "mewtwo")).rejects.toThrow("no es una evolución");
     await expect(team.withdrawFromBox(7, 5)).rejects.toThrow("ya no está en la caja");
     expect(await team.getTeamView()).toEqual(before);
   });

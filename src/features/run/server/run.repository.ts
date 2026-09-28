@@ -15,6 +15,15 @@ export const findActiveRun = (db: Db = prisma) =>
 
 export const createRun = (widgetToken: string, db: Db = prisma) => db.run.create({ data: { widgetToken } });
 
+/**
+ * Run activa; si no existe, la crea. Leer y crear en la misma transacción evita
+ * que dos instancias (o peticiones) contra la misma BD creen dos runs activas.
+ */
+export function findOrCreateActiveRun(newToken: () => string, db?: Db): Promise<RunRow> {
+  const run = async (tx: Db) => (await findActiveRun(tx)) ?? createRun(newToken(), tx);
+  return db ? run(db) : prisma.$transaction(run);
+}
+
 export const findRunById = (id: string, db: Db = prisma) => db.run.findUnique({ where: { id } });
 
 export const findRunIdByToken = async (widgetToken: string, db: Db = prisma) =>
