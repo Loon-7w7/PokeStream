@@ -35,7 +35,8 @@ export const TOUR_STEPS: Step[] = [
   {
     target: at("nuzlocke"),
     title: "Modo Nuzlocke",
-    content: "Actívalo si juegas un Nuzlocke: un Pokémon debilitado ya no puede revivir y podrás mostrar un contador de muertes en el widget. Una vez activo, solo una nueva partida lo apaga.",
+    content:
+      "Actívalo si juegas un Nuzlocke: un Pokémon debilitado ya no puede revivir y podrás mostrar un contador de muertes en el widget. Una vez activo, solo una nueva partida lo apaga.",
   },
   {
     target: at("new-game"),
@@ -57,6 +58,13 @@ export const TOUR_STEPS: Step[] = [
     target: at("showdown"),
     title: "Pokémon Showdown",
     content: "Exporta tu equipo en formato Showdown o importa sets a la caja pegando el texto.",
+  },
+  {
+    target: at("side-toggle"),
+    title: "Más espacio",
+    content: "Con este botón ocultas el panel del widget y Showdown hacia la derecha. Para volver a mostrarlo, pulsa la pestaña del borde.",
+    placement: "left",
+    targetWaitTimeout: 0, // en pantallas pequeñas el botón no existe: se salta el paso
   },
   {
     target: at("tour"),

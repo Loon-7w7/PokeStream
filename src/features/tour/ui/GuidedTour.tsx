@@ -22,7 +22,8 @@ function markSeen() {
   } catch {}
 }
 
-export function GuidedTour() {
+/** `onStart`: quien compone prepara el panel (p. ej. mostrar el panel lateral) antes de empezar. */
+export function GuidedTour({ onStart }: { onStart?: () => void }) {
   const { controls, Tour } = useJoyride({
     steps: TOUR_STEPS,
     continuous: true,
@@ -41,8 +42,13 @@ export function GuidedTour() {
     },
   });
 
+  const start = () => {
+    onStart?.();
+    controls.start(0);
+  };
+
   useEffect(() => {
-    if (!wasSeen()) controls.start();
+    if (!wasSeen()) start();
     // Solo al montar el panel
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -51,7 +57,7 @@ export function GuidedTour() {
     <>
       <button
         data-tour="tour"
-        onClick={() => controls.start(0)}
+        onClick={start}
         title="Ver el tour del panel"
         aria-label="Ver el tour del panel"
         className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"

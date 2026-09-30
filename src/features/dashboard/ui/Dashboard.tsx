@@ -1,10 +1,11 @@
 "use client";
 // Composición del panel. El estado viene del servidor (props); las acciones hacen refresh()
 // y Next re-renderiza con datos nuevos. Cambios desde otra pestaña llegan por SSE -> router.refresh().
-import { CircleAlert, X } from "lucide-react";
-import { useEffect } from "react";
+import { ChevronLeft, ChevronRight, CircleAlert, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
+import { cx } from "@/core/ui/cx";
 import { RunHeader } from "@/features/run/ui";
 import { CopySlotButton, ShowdownBox } from "@/features/showdown/ui";
 import { NewGameButton, StoragePanel, TeamSection } from "@/features/team/ui";
@@ -14,23 +15,31 @@ import type { DashboardState } from "../types";
 import { Footer } from "./Footer";
 
 export function Dashboard({ state }: { state: DashboardState }) {
+  // Panel lateral (widget + Showdown) plegable en escritorio. En móvil va debajo y siempre visible.
+  const [sideOpen, setSideOpen] = useState(true);
+
   return (
     <ActionProvider>
       <LiveSync token={state.run.widgetToken} />
-      <div className="flex min-h-screen flex-col bg-bg text-text">
+      <div className="flex min-h-screen flex-col overflow-x-clip bg-bg text-text">
         <RunHeader
           info={state.run.info}
           appName={state.appName}
           authEnabled={state.authEnabled}
           actions={
             <>
-              <GuidedTour />
+              <GuidedTour onStart={() => setSideOpen(true)} />
               <NewGameButton />
             </>
           }
         />
         <ErrorBanner />
-        <main className="mx-auto grid w-full max-w-[1500px] flex-1 content-start gap-5 px-4 py-5 lg:grid-cols-[1fr_380px]">
+        <main
+          className={cx(
+            "mx-auto grid w-full max-w-[1500px] flex-1 content-start gap-5 px-4 py-5 transition-[grid-template-columns,column-gap] duration-300",
+            sideOpen ? "lg:grid-cols-[1fr_380px]" : "lg:grid-cols-[1fr_0px] lg:gap-x-0",
+          )}
+        >
           <div className="flex min-w-0 flex-col gap-5">
             <TeamSection
               slots={state.team}
@@ -40,7 +49,21 @@ export function Dashboard({ state }: { state: DashboardState }) {
             />
             <StoragePanel storage={state.storage} team={state.team} nuzlocke={state.run.info.nuzlocke} spritesBase={state.spritesBase} />
           </div>
-          <aside className="flex flex-col gap-5">
+          <aside
+            className={cx(
+              "relative flex flex-col gap-5 transition-[translate,opacity,visibility] duration-300 lg:w-[380px]",
+              !sideOpen && "lg:invisible lg:translate-x-8 lg:opacity-0",
+            )}
+          >
+            <button
+              data-tour="side-toggle"
+              onClick={() => setSideOpen(false)}
+              title="Ocultar el panel lateral"
+              aria-label="Ocultar el panel lateral"
+              className="absolute -left-6 top-3 z-10 hidden size-7 place-items-center rounded-full border border-line bg-panel text-muted shadow hover:border-accent hover:text-accent lg:grid"
+            >
+              <ChevronRight className="size-4" />
+            </button>
             <WidgetSettings
               config={state.run.config}
               widgetToken={state.run.widgetToken}
@@ -52,6 +75,16 @@ export function Dashboard({ state }: { state: DashboardState }) {
             <ShowdownBox />
           </aside>
         </main>
+        {!sideOpen && (
+          <button
+            onClick={() => setSideOpen(true)}
+            title="Mostrar el panel lateral"
+            className="anim-slot-in fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-center gap-2 rounded-l-xl border border-r-0 border-line bg-panel px-1.5 py-3 text-sm text-muted shadow-lg hover:border-accent hover:text-accent lg:flex"
+          >
+            <ChevronLeft className="size-4" />
+            <span className="[writing-mode:vertical-rl]">Widget y Showdown</span>
+          </button>
+        )}
         <Footer kofiUrl={state.kofiUrl} />
       </div>
     </ActionProvider>

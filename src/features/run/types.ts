@@ -27,10 +27,9 @@ export interface WidgetConfig {
   layout: WidgetLayout;
   /** Posición de cada slot (índice = slot 0-5) en modo libre. */
   slotPositions: SlotPoint[];
-  opacity: number; // 0-100
+  opacity: number; // 0-100 fondo de las tarjetas y, en proporción, la silueta de pokébola
   scale: number; // 50-150 %
   gap: number; // px
-  pokeballOpacity: number; // 0-100, 0 = oculta
   showNickname: boolean;
   showTypes: boolean;
   faintEffect: boolean;

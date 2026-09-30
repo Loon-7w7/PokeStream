@@ -73,6 +73,9 @@ export function PlacedSlot({ point, scale, children, ...rest }: { point: SlotPoi
   );
 }
 
+/** La silueta de pokébola sigue a la opacidad del fondo: 75 % de fondo = 15 % de silueta. */
+const POKEBALL_RATIO = 0.2;
+
 /** Fondo y borde de las tarjetas del widget según la opacidad elegida. */
 const surface = (opacity: number): React.CSSProperties => ({
   background: `rgba(16, 27, 46, ${opacity / 100})`,
@@ -104,7 +107,7 @@ export function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; co
       )}
       style={surface(config.opacity)}
     >
-      {config.pokeballOpacity > 0 && <PokeballSilhouette opacity={config.pokeballOpacity / 100} />}
+      {config.opacity > 0 && <PokeballSilhouette opacity={(config.opacity / 100) * POKEBALL_RATIO} />}
 
       <div className="relative w-full max-w-[140px]">
         <div className="truncate text-base font-bold leading-tight drop-shadow">{title}</div>
