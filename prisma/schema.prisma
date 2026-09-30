@@ -28,6 +28,8 @@ model Run {
   showTypes    Boolean @default(true)
   faintEffect  Boolean @default(true) // escala de grises al debilitarse
   animated     Boolean @default(true) // sprites GIF animados vs PNG estáticos
+  deathCounter Boolean @default(false) // contador de muertes (solo se muestra en Nuzlocke)
+  deathCounterPosition String @default("") // JSON: {x,y} centro del contador ("" = por defecto)
 
   slots     Slot[]
   storage   Storage?

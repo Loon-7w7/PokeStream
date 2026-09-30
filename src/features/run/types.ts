@@ -19,6 +19,9 @@ export const WIDGET_CANVAS = { width: 1920, height: 1080 } as const;
 /** Posiciones iniciales del modo libre: la misma fila que "hud-bottom" (escala 100 %, 12 px). */
 export const DEFAULT_SLOT_POSITIONS: SlotPoint[] = Array.from({ length: 6 }, (_, i) => ({ x: 405 + i * 222, y: 951 }));
 
+/** Posición inicial del contador de muertes: esquina superior izquierda. */
+export const DEFAULT_DEATH_COUNTER_POSITION: SlotPoint = { x: 160, y: 60 };
+
 /** Configuración visual del widget. Vive en la tabla Run (una config por run). */
 export interface WidgetConfig {
   layout: WidgetLayout;
@@ -32,6 +35,10 @@ export interface WidgetConfig {
   showTypes: boolean;
   faintEffect: boolean;
   animated: boolean;
+  /** Contador de muertes. Solo se muestra con el Nuzlocke activo. */
+  deathCounter: boolean;
+  /** Centro del contador (px), en cualquier layout. */
+  deathCounterPosition: SlotPoint;
 }
 
 export type WidgetConfigPatch = Partial<WidgetConfig>;

@@ -15,4 +15,6 @@ export interface DashboardState {
   storage: StorageView;
   /** Lo que ve el widget (para el editor de posiciones). */
   widgetSlots: WidgetSlot[];
+  /** Muertes que muestra el contador del widget (0 si está oculto). */
+  widgetDeaths: number;
 }

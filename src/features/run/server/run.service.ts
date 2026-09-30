@@ -23,9 +23,10 @@ export const findRunIdByWidgetToken = async (token: string) => (isWidgetTokenFor
 /** Token vigente de la run (null si la run no existe). */
 export const getWidgetToken = async (runId: string) => (await runs.findRunById(runId))?.widgetToken ?? null;
 
-export async function getWidgetConfig(runId: string): Promise<WidgetConfig | null> {
+/** Lo que el widget necesita de la run: su config y si está en Nuzlocke (null si no existe). */
+export async function getWidgetRun(runId: string): Promise<{ config: WidgetConfig; nuzlocke: boolean } | null> {
   const run = await runs.findRunById(runId);
-  return run ? runs.toWidgetConfig(run) : null;
+  return run ? { config: runs.toWidgetConfig(run), nuzlocke: run.nuzlocke } : null;
 }
 
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);

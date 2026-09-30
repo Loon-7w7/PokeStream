@@ -1,6 +1,6 @@
 "use client";
 // Panel: URL para OBS, vista previa en vivo y ajustes visuales del widget.
-import { Check, Copy, KeyRound, Move, Rows3, type LucideIcon } from "lucide-react";
+import { Check, Copy, KeyRound, Move, Rows3, Skull, type LucideIcon } from "lucide-react";
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
 import { regenerateWidgetToken, updateWidgetConfig } from "@/features/run/actions";
@@ -25,14 +25,24 @@ const LAYOUTS: [WidgetLayout, string, LucideIcon][] = [
 
 const noopSubscribe = () => () => {};
 
-export function WidgetSettings(props: { config: WidgetConfig; widgetToken: string; slots: WidgetSlot[]; spritesBase: string }) {
-  const { config: serverConfig, widgetToken } = props;
+export function WidgetSettings(props: {
+  config: WidgetConfig;
+  widgetToken: string;
+  slots: WidgetSlot[];
+  /** Muertes actuales (para la vista del editor). */
+  deaths: number;
+  nuzlocke: boolean;
+  spritesBase: string;
+}) {
+  const { config: serverConfig, widgetToken, nuzlocke } = props;
   const { run } = useAction();
   const [config, applyOptimistic] = useOptimistic(serverConfig, (c: WidgetConfig, p: WidgetConfigPatch) => ({ ...c, ...p }));
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const url = `${origin}/widget/${widgetToken}`;
+  // El contador solo existe en Nuzlocke: fuera de él no se muestra aunque esté activado
+  const showCounter = nuzlocke && config.deathCounter;
 
   const save = (patch: WidgetConfigPatch) => run(() => updateWidgetConfig(patch), () => applyOptimistic(patch));
 
@@ -84,10 +94,10 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
             </button>
           ))}
         </div>
-        {config.layout === "free" && (
+        {(config.layout === "free" || showCounter) && (
           <button onClick={() => setEditing(true)} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent/60 py-2 text-sm font-semibold text-accent hover:bg-accent/10">
             <Move className="size-4" />
-            Editar posiciones
+            {config.layout === "free" ? "Editar posiciones" : "Mover contador de muertes"}
           </button>
         )}
       </div>
@@ -118,6 +128,22 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
         ))}
       </div>
 
+      <label
+        className={cx("mt-3 flex items-center gap-2 text-sm", nuzlocke ? "cursor-pointer" : "cursor-not-allowed text-muted")}
+        title={nuzlocke ? "Muestra en el widget cuántos Pokémon han muerto" : "Activa el modo Nuzlocke para usar el contador"}
+      >
+        <input
+          type="checkbox"
+          disabled={!nuzlocke}
+          checked={showCounter}
+          onChange={(e) => save({ deathCounter: e.target.checked })}
+          className="accent-accent"
+        />
+        <Skull className="size-4 text-bad" />
+        Contador de muertes
+        {!nuzlocke && <span className="text-xs">(solo en modo Nuzlocke)</span>}
+      </label>
+
       <button
         onClick={() => confirm("La URL actual dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?") && run(regenerateWidgetToken)}
         className="mt-4 inline-flex items-center gap-1 text-xs text-muted underline-offset-2 hover:text-bad hover:underline"
@@ -130,8 +156,9 @@ export function WidgetSettings(props: { config: WidgetConfig; widgetToken: strin
         <PositionEditor
           config={config}
           slots={props.slots}
+          deaths={showCounter ? props.deaths : null}
           spritesBase={props.spritesBase}
-          onSave={(slotPositions) => save({ slotPositions })}
+          onSave={save}
           onClose={() => setEditing(false)}
         />
       )}

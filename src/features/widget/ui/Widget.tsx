@@ -1,5 +1,6 @@
 "use client";
 // Widget de OBS: fondo transparente, 1920x1080. Solo pinta lo que llega por SSE (sin lógica de negocio).
+import { Skull } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { cx } from "@/core/ui/cx";
 import { Sprite } from "@/core/ui/Sprite";
@@ -21,12 +22,22 @@ export function Widget({ token, initial, spritesBase }: { token: string; initial
   }, [token]);
 
   if (!state) return null;
-  return state.config.layout === "free" ? <FreeLayout state={state} spritesBase={spritesBase} /> : <HudBottom state={state} spritesBase={spritesBase} />;
+  return (
+    <>
+      {state.config.layout === "free" ? <FreeLayout state={state} spritesBase={spritesBase} /> : <HudBottom config={state.config} slots={state.slots} spritesBase={spritesBase} />}
+      {state.deaths !== null && (
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <PlacedSlot point={state.config.deathCounterPosition} scale={state.config.scale}>
+            <DeathCounter deaths={state.deaths} config={state.config} />
+          </PlacedSlot>
+        </div>
+      )}
+    </>
+  );
 }
 
 /** Layout "HUD inferior": fila de tarjetas centrada abajo. */
-function HudBottom({ state, spritesBase }: { state: WidgetState; spritesBase: string }) {
-  const { config, slots } = state;
+export function HudBottom({ config, slots, spritesBase }: { config: WidgetConfig; slots: WidgetSlot[]; spritesBase: string }) {
   return (
     <div className="fixed inset-0 flex items-end justify-center overflow-hidden pb-6">
       <div className="flex items-end" style={{ gap: config.gap, transform: `scale(${config.scale / 100})`, transformOrigin: "bottom center" }}>
@@ -62,6 +73,25 @@ export function PlacedSlot({ point, scale, children, ...rest }: { point: SlotPoi
   );
 }
 
+/** Fondo y borde de las tarjetas del widget según la opacidad elegida. */
+const surface = (opacity: number): React.CSSProperties => ({
+  background: `rgba(16, 27, 46, ${opacity / 100})`,
+  borderColor: `rgba(53, 184, 243, ${0.15 + (opacity / 100) * 0.35})`,
+  boxShadow: opacity > 0 ? "0 8px 30px rgba(0,0,0,0.35)" : "none",
+});
+
+/** Contador de muertes (Nuzlocke). Se coloca como un slot más con su propia posición. */
+export function DeathCounter({ deaths, config }: { deaths: number; config: WidgetConfig }) {
+  return (
+    <div className="anim-slot-in flex items-center gap-3 whitespace-nowrap rounded-full border px-6 py-3 text-text" style={surface(config.opacity)}>
+      <Skull className="size-8 text-bad drop-shadow" aria-hidden />
+      <span className="text-2xl font-bold drop-shadow">
+        Muertes: <span className="font-mono">{deaths}</span>
+      </span>
+    </div>
+  );
+}
+
 export function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; config: WidgetConfig; spritesBase: string }) {
   const title = config.showNickname && slot.nickname ? slot.nickname : slot.speciesName;
 
@@ -72,11 +102,7 @@ export function WidgetCard({ slot, config, spritesBase }: { slot: WidgetSlot; co
         "anim-slot-in relative flex h-[210px] w-[210px] flex-col items-center justify-center rounded-full border px-8 text-center text-text",
         slot.fainted && config.faintEffect && "opacity-60 grayscale",
       )}
-      style={{
-        background: `rgba(16, 27, 46, ${config.opacity / 100})`,
-        borderColor: `rgba(53, 184, 243, ${0.15 + (config.opacity / 100) * 0.35})`,
-        boxShadow: config.opacity > 0 ? "0 8px 30px rgba(0,0,0,0.35)" : "none",
-      }}
+      style={surface(config.opacity)}
     >
       {config.pokeballOpacity > 0 && <PokeballSilhouette opacity={config.pokeballOpacity / 100} />}
 

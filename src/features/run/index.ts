@@ -4,7 +4,7 @@ export { mutateRun, type MutationContext } from "./server/unit-of-work";
 export { getCurrentRun } from "./server/current-run";
 export {
   getRunOverview,
-  getWidgetConfig,
+  getWidgetRun,
   findRunIdByWidgetToken,
   getWidgetToken,
   subscribeToRun,

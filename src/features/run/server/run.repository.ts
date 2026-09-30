@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma, type Db, type RunRow } from "@/core/db/client";
-import { DEFAULT_SLOT_POSITIONS, type RunInfo, type SlotPoint, type WidgetConfig, type WidgetConfigPatch } from "../types";
+import { DEFAULT_DEATH_COUNTER_POSITION, DEFAULT_SLOT_POSITIONS, type RunInfo, type SlotPoint, type WidgetConfig, type WidgetConfigPatch } from "../types";
 
 export type { RunRow };
 
@@ -47,21 +47,40 @@ export const updateRunInfo = (id: string, info: Partial<RunInfo>, db: Db = prism
   db.run.update({ where: { id }, data: info });
 
 export function updateWidgetConfig(id: string, patch: WidgetConfigPatch, db: Db = prisma) {
-  const { slotPositions, ...rest } = patch;
-  return db.run.update({ where: { id }, data: { ...rest, ...(slotPositions && { slotPositions: JSON.stringify(slotPositions) }) } });
+  const { slotPositions, deathCounterPosition, ...rest } = patch;
+  return db.run.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(slotPositions && { slotPositions: JSON.stringify(slotPositions) }),
+      ...(deathCounterPosition && { deathCounterPosition: JSON.stringify(deathCounterPosition) }),
+    },
+  });
 }
 
 export const updateWidgetToken = (id: string, widgetToken: string, db: Db = prisma) =>
   db.run.update({ where: { id }, data: { widgetToken } });
 
+const isPoint = (p: SlotPoint | undefined) => Number.isFinite(p?.x) && Number.isFinite(p?.y);
+
 /** JSON guardado -> 6 puntos válidos; si falta o está corrupto, las posiciones por defecto. */
 function parsePositions(json: string): SlotPoint[] {
   try {
     const list = json ? (JSON.parse(json) as SlotPoint[]) : [];
-    const valid = Array.isArray(list) && list.length === 6 && list.every((p) => Number.isFinite(p?.x) && Number.isFinite(p?.y));
+    const valid = Array.isArray(list) && list.length === 6 && list.every(isPoint);
     return valid ? list.map(({ x, y }) => ({ x, y })) : DEFAULT_SLOT_POSITIONS;
   } catch {
     return DEFAULT_SLOT_POSITIONS;
+  }
+}
+
+/** JSON guardado -> un punto válido; si falta o está corrupto, `fallback`. */
+function parsePoint(json: string, fallback: SlotPoint): SlotPoint {
+  try {
+    const p = json ? (JSON.parse(json) as SlotPoint) : undefined;
+    return p && isPoint(p) ? { x: p.x, y: p.y } : fallback;
+  } catch {
+    return fallback;
   }
 }
 
@@ -77,6 +96,8 @@ export function toWidgetConfig(row: RunRow): WidgetConfig {
     showTypes: row.showTypes,
     faintEffect: row.faintEffect,
     animated: row.animated,
+    deathCounter: row.deathCounter,
+    deathCounterPosition: parsePoint(row.deathCounterPosition, DEFAULT_DEATH_COUNTER_POSITION),
   };
 }
 

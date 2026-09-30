@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { SpeciesInfo } from "@/core/pokedex/types";
 import { DomainError } from "@/core/result";
 import { emptySlot, placeSpecies } from "./slot";
-import { BOX_LIMIT, addToBox, removeStored, stash, takeFromBox } from "./storage";
+import { BOX_LIMIT, addToBox, countDeaths, removeStored, stash, takeFromBox } from "./storage";
 
 const pikachu: SpeciesInfo = { id: "pikachu", name: "Pikachu", abilityIds: ["static"], defaultAbilityId: "static" };
 const empty = { box: [], graveyard: [] };
@@ -42,4 +42,13 @@ describe("addToBox", () => {
     expect(() => addToBox(full, [set])).toThrow(DomainError);
     expect(addToBox(empty, [set]).box).toHaveLength(1);
   });
+});
+
+describe("countDeaths", () => {
+  it("suma Muertos y debilitados del equipo; ignora vivos y slots vacíos", () => {
+    const stored = stash(empty, [{ ...alive, fainted: true }], { nuzlocke: true });
+    const team = [{ ...alive, position: 0, fainted: true }, { ...alive, position: 1 }, { ...emptySlot(2), fainted: true }];
+    expect(countDeaths(team, stored)).toBe(2);
+  });
+  it("partida limpia = 0", () => expect(countDeaths([alive], empty)).toBe(0));
 });

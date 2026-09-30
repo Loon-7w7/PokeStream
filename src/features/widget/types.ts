@@ -20,6 +20,8 @@ export interface WidgetState {
   config: WidgetConfig;
   /** Solo slots con Pokémon. Nunca incluye datos privados (tokens, movimientos, EVs…). */
   slots: WidgetSlot[];
+  /** Muertes para el contador; null = no se muestra (Nuzlocke apagado o contador desactivado). */
+  deaths: number | null;
 }
 
 /** Eventos SSE de /api/stream/[token]. */

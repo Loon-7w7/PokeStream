@@ -25,6 +25,8 @@ const WidgetConfigInput = z
     showTypes: z.boolean(),
     faintEffect: z.boolean(),
     animated: z.boolean(),
+    deathCounter: z.boolean(),
+    deathCounterPosition: Point,
   })
   .partial()
   .strict();

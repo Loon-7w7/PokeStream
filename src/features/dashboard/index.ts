@@ -25,5 +25,6 @@ export async function getDashboardState(): Promise<DashboardState> {
     team,
     storage,
     widgetSlots: widget?.slots ?? [],
+    widgetDeaths: widget?.deaths ?? 0,
   };
 }

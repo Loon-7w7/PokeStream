@@ -40,6 +40,12 @@ export async function getTeamByRunId(runId: string): Promise<SlotView[]> {
   return (await slots.listSlots(runId)).map(toView);
 }
 
+/** Muertes de la run (Muertos + debilitados del equipo), para el contador del widget. */
+export async function countDeathsByRunId(runId: string): Promise<number> {
+  const [team, stored] = await Promise.all([slots.listSlots(runId), storage.getStorage(runId)]);
+  return box.countDeaths(team, stored);
+}
+
 /** Sets en formato neutro (para exportar). */
 export async function getTeamSets(position?: number): Promise<PokemonSetData[]> {
   const run = await getCurrentRun();

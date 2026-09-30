@@ -30,7 +30,14 @@ export function Dashboard({ state }: { state: DashboardState }) {
             <StoragePanel storage={state.storage} team={state.team} nuzlocke={state.run.info.nuzlocke} spritesBase={state.spritesBase} />
           </div>
           <aside className="flex flex-col gap-5">
-            <WidgetSettings config={state.run.config} widgetToken={state.run.widgetToken} slots={state.widgetSlots} spritesBase={state.spritesBase} />
+            <WidgetSettings
+              config={state.run.config}
+              widgetToken={state.run.widgetToken}
+              slots={state.widgetSlots}
+              deaths={state.widgetDeaths}
+              nuzlocke={state.run.info.nuzlocke}
+              spritesBase={state.spritesBase}
+            />
             <ShowdownBox />
           </aside>
         </main>

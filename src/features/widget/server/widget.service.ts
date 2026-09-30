@@ -1,15 +1,17 @@
 import "server-only";
-import { findRunIdByWidgetToken, getWidgetConfig, getWidgetToken, subscribeToRun } from "@/features/run";
-import { getTeamByRunId } from "@/features/team";
+import { findRunIdByWidgetToken, getWidgetRun, getWidgetToken, subscribeToRun } from "@/features/run";
+import { countDeathsByRunId, getTeamByRunId } from "@/features/team";
 import { WIDGET_CONTRACT_VERSION, type WidgetEvent, type WidgetState } from "../types";
 
-/** Read model del widget: compone config (run) + equipo (team) en el contrato público. */
+/** Read model del widget: compone config (run) + equipo y muertes (team) en el contrato público. */
 export async function getWidgetState(runId: string): Promise<WidgetState | null> {
-  const [config, team] = await Promise.all([getWidgetConfig(runId), getTeamByRunId(runId)]);
-  if (!config) return null;
+  const [run, team] = await Promise.all([getWidgetRun(runId), getTeamByRunId(runId)]);
+  if (!run) return null;
+  const { config, nuzlocke } = run;
   return {
     v: WIDGET_CONTRACT_VERSION,
     config,
+    deaths: nuzlocke && config.deathCounter ? await countDeathsByRunId(runId) : null,
     slots: team
       .filter((s) => s.species)
       .map((s) => ({
