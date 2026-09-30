@@ -20,7 +20,6 @@ const WidgetConfigInput = z
     opacity: z.number().int().min(0).max(100),
     scale: z.number().int().min(50).max(150),
     gap: z.number().int().min(0).max(64),
-    pokeballOpacity: z.number().int().min(0).max(100),
     showNickname: z.boolean(),
     showTypes: z.boolean(),
     faintEffect: z.boolean(),

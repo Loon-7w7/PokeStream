@@ -91,7 +91,6 @@ export function toWidgetConfig(row: RunRow): WidgetConfig {
     opacity: row.opacity,
     scale: row.scale,
     gap: row.gap,
-    pokeballOpacity: row.pokeballOpacity,
     showNickname: row.showNickname,
     showTypes: row.showTypes,
     faintEffect: row.faintEffect,

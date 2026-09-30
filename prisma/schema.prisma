@@ -20,10 +20,9 @@ model Run {
   // Configuración visual del widget (se aplica en vivo)
   layout       String  @default("hud-bottom") // hud-bottom | free
   slotPositions String @default("") // JSON: {x,y}[6] centro de cada slot en modo libre ("" = por defecto)
-  opacity      Int     @default(75) // 0-100 opacidad del fondo de las tarjetas
+  opacity      Int     @default(75) // 0-100 opacidad del fondo de las tarjetas (la silueta de pokébola va en proporción)
   scale        Int     @default(100) // 80-150 %
   gap          Int     @default(12) // px entre tarjetas
-  pokeballOpacity Int  @default(15) // 0-100 silueta de pokébola tras el Pokémon (0 = oculta)
   showNickname Boolean @default(true)
   showTypes    Boolean @default(true)
   faintEffect  Boolean @default(true) // escala de grises al debilitarse

@@ -82,11 +82,11 @@ export function TeamSection({ slots: serverSlots, spritesBase, nuzlocke, renderE
   const count = slots.filter((s) => s.species).length;
 
   return (
-    <section>
+    <section data-tour="team">
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <h2 className="text-lg font-semibold">Equipo activo</h2>
         <span className="rounded-md bg-accent/15 px-2 py-0.5 font-mono text-xs text-accent">{count} / 6</span>
-        <span className="text-xs text-muted">
+        <span data-tour="team-shortcuts" className="text-xs text-muted">
           <Kbd>1</Kbd>–<Kbd>6</Kbd> elegir · <Kbd>R</Kbd> reemplazar · <Kbd>E</Kbd> editar · <Kbd>F</Kbd> debilitar
         </span>
       </div>

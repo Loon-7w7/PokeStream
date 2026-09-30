@@ -34,9 +34,9 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/pokedex/showdown.ts` | `formatShowdown` / `parseShowdown` |
 | `src/core/pokedex/sprites.ts` | URLs de sprites `{SPRITES_BASE_URL}{ani|gen5|dex}[-shiny]/{spriteId}` |
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
-| `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
+| `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `ConfirmDialog` (confirmar acciones importantes), `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
 | `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), registro abierto (`ALLOWED_EMAILS` opcional = beta cerrada, `BLOCKED_EMAILS`); `requireUser` (correo o `UNAUTHORIZED`), `isSignedIn`, `LOCAL_USER` sin login, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
-| `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`), config del widget, `RunHeader` (acepta `actions`) |
+| `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`; el Nuzlocke no se desactiva salvo con Nueva partida), config del widget, `RunHeader` (acepta `actions`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
 | `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos), `NewGameButton` (`startNewGame`) |

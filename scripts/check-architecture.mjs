@@ -12,8 +12,9 @@ const ALLOWED = {
   team: ["run"],
   showdown: ["auth", "team"],
   widget: ["run", "team"],
-  dashboard: ["auth", "run", "team", "showdown", "widget"],
+  dashboard: ["auth", "run", "team", "showdown", "widget", "tour"],
   legal: [],
+  tour: [],
 };
 
 /** Archivos que deben declarar `import "server-only"`. */

@@ -44,7 +44,7 @@ export function StoragePanel({ storage, team, nuzlocke, spritesBase }: StoragePa
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-panel p-4">
+    <div data-tour="storage" className="rounded-2xl border border-line bg-panel p-4">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="grid w-full max-w-sm grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="tablist">
           <TabButton active={tab === "box"} onClick={() => switchTab("box")}>

@@ -1,8 +1,9 @@
 "use client";
 // Panel: URL para OBS, vista previa en vivo y ajustes visuales del widget.
-import { Check, Copy, KeyRound, Move, Rows3, Skull, type LucideIcon } from "lucide-react";
+import { Check, Copy, KeyRound, Move, Rows3, Skull, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
+import { ConfirmDialog } from "@/core/ui/ConfirmDialog";
 import { regenerateWidgetToken, updateWidgetConfig } from "@/features/run/actions";
 import type { WidgetConfig, WidgetConfigPatch, WidgetLayout } from "@/features/run/types";
 import { cx } from "@/core/ui/cx";
@@ -35,11 +36,12 @@ export function WidgetSettings(props: {
   spritesBase: string;
 }) {
   const { config: serverConfig, widgetToken, nuzlocke } = props;
-  const { run } = useAction();
+  const { run, pending } = useAction();
   const [config, applyOptimistic] = useOptimistic(serverConfig, (c: WidgetConfig, p: WidgetConfigPatch) => ({ ...c, ...p }));
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const url = `${origin}/widget/${widgetToken}`;
   // El contador solo existe en Nuzlocke: fuera de él no se muestra aunque esté activado
   const showCounter = nuzlocke && config.deathCounter;
@@ -50,7 +52,7 @@ export function WidgetSettings(props: {
     <div className="rounded-2xl border border-line bg-panel p-4">
       <h2 className="mb-3 font-semibold">Widget para OBS</h2>
 
-      <div className="flex gap-2">
+      <div data-tour="widget-url" className="flex gap-2">
         <input
           readOnly
           value={url}
@@ -76,7 +78,7 @@ export function WidgetSettings(props: {
 
       <Preview url={origin ? url : ""} />
 
-      <div className="mt-4 grid gap-2">
+      <div data-tour="widget-options" className="mt-4 grid gap-2">
         <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="radiogroup" aria-label="Distribución">
           {LAYOUTS.map(([value, label, Icon]) => (
             <button
@@ -103,20 +105,11 @@ export function WidgetSettings(props: {
       </div>
 
       <div className="mt-4 grid gap-3">
-        <Slider key={`o${config.opacity}`} label="Opacidad del fondo" value={config.opacity} min={0} max={100} unit="%" onCommit={(v) => save({ opacity: v })} />
+        <Slider key={`o${config.opacity}`} label="Opacidad del fondo y pokébola" value={config.opacity} min={0} max={100} unit="%" onCommit={(v) => save({ opacity: v })} />
         <Slider key={`s${config.scale}`} label="Escala" value={config.scale} min={50} max={150} unit="%" onCommit={(v) => save({ scale: v })} />
         {config.layout === "hud-bottom" && (
           <Slider key={`g${config.gap}`} label="Espacio entre tarjetas" value={config.gap} min={0} max={48} unit="px" onCommit={(v) => save({ gap: v })} />
         )}
-        <Slider
-          key={`p${config.pokeballOpacity}`}
-          label={config.pokeballOpacity ? "Silueta de pokébola" : "Silueta de pokébola (oculta)"}
-          value={config.pokeballOpacity}
-          min={0}
-          max={100}
-          unit="%"
-          onCommit={(v) => save({ pokeballOpacity: v })}
-        />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
@@ -145,12 +138,33 @@ export function WidgetSettings(props: {
       </label>
 
       <button
-        onClick={() => confirm("La URL actual dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?") && run(regenerateWidgetToken)}
+        onClick={() => setRegenerating(true)}
         className="mt-4 inline-flex items-center gap-1 text-xs text-muted underline-offset-2 hover:text-bad hover:underline"
       >
         <KeyRound className="size-3.5" />
         Regenerar URL (si se filtró)
       </button>
+
+      {regenerating && (
+        <ConfirmDialog
+          title="¿Regenerar la URL del widget?"
+          icon={KeyRound}
+          tone="warn"
+          confirmLabel="Sí, regenerar"
+          pending={pending}
+          onConfirm={async () => {
+            const res = await run(regenerateWidgetToken);
+            if (res?.ok) setRegenerating(false);
+          }}
+          onClose={() => setRegenerating(false)}
+        >
+          <p>Úsalo si alguien más consiguió tu URL. Se crea una nueva y la actual deja de funcionar al instante.</p>
+          <p className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn">
+            <TriangleAlert className="size-4 shrink-0" />
+            Tendrás que pegar la URL nueva en la fuente de navegador de OBS.
+          </p>
+        </ConfirmDialog>
+      )}
 
       {editing && (
         <PositionEditor

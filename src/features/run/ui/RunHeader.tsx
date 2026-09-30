@@ -1,6 +1,8 @@
 "use client";
-import { CircleCheck, LoaderCircle, LogOut, Skull } from "lucide-react";
+import { CircleCheck, Lock, LoaderCircle, LogOut, Skull } from "lucide-react";
+import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
+import { ConfirmDialog } from "@/core/ui/ConfirmDialog";
 import { Logo } from "@/core/ui/Logo";
 import { logout } from "@/features/auth/actions";
 import { updateRunInfo } from "../actions";
@@ -16,6 +18,12 @@ export interface RunHeaderProps {
 
 export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProps) {
   const { run, pending } = useAction();
+  const [dialog, setDialog] = useState<"nuzlocke" | "logout" | null>(null);
+
+  const activateNuzlocke = async () => {
+    const res = await run(() => updateRunInfo({ nuzlocke: true }));
+    if (res?.ok) setDialog(null);
+  };
 
   return (
     <header className="border-b border-line bg-panel">
@@ -26,16 +34,20 @@ export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProp
         </div>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>
+        {/* Una vez activo no se puede apagar: solo "Nueva partida" lo desactiva */}
         <button
-          onClick={() => run(() => updateRunInfo({ nuzlocke: !info.nuzlocke }))}
+          data-tour="nuzlocke"
+          onClick={() => setDialog("nuzlocke")}
+          disabled={info.nuzlocke}
           aria-pressed={info.nuzlocke}
-          title="En modo Nuzlocke un Pokémon debilitado no puede revivir"
+          title={info.nuzlocke ? "El modo Nuzlocke está activo hasta que empieces una nueva partida" : "Activar el modo Nuzlocke"}
           className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
-            info.nuzlocke ? "border-bad bg-bad/15 text-bad" : "border-line text-muted hover:border-bad/60 hover:text-text"
+            info.nuzlocke ? "cursor-default border-bad bg-bad/15 text-bad" : "border-line text-muted hover:border-bad/60 hover:text-text"
           }`}
         >
           <Skull className="size-4" />
           Nuzlocke {info.nuzlocke ? "ON" : "OFF"}
+          {info.nuzlocke && <Lock className="size-3.5" />}
         </button>
 
         <div className="flex items-center gap-3 text-xs">
@@ -44,15 +56,34 @@ export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProp
             {pending ? "Guardando…" : "Sincronizado"}
           </span>
           {authEnabled && (
-            <form action={logout}>
-              <button className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-muted hover:text-text">
-                <LogOut className="size-3.5" />
-                Salir
-              </button>
-            </form>
+            <button onClick={() => setDialog("logout")} className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-muted hover:text-text">
+              <LogOut className="size-3.5" />
+              Salir
+            </button>
           )}
         </div>
       </div>
+
+      {dialog === "nuzlocke" && (
+        <ConfirmDialog title="¿Activar el modo Nuzlocke?" icon={Skull} confirmLabel="Sí, activar" pending={pending} onConfirm={activateNuzlocke} onClose={() => setDialog(null)}>
+          <ul className="grid gap-2">
+            <li>Un Pokémon debilitado queda <b>muerto</b>: no se puede revivir.</li>
+            <li>
+              Al sacarlo del equipo va a <b>Muertos</b>, no a la caja.
+            </li>
+            <li>Podrás mostrar un contador de muertes en el widget.</li>
+          </ul>
+          <p className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn">
+            <Lock className="size-4 shrink-0" />
+            No se puede desactivar: solo una nueva partida lo apaga.
+          </p>
+        </ConfirmDialog>
+      )}
+      {dialog === "logout" && (
+        <ConfirmDialog title="¿Cerrar sesión?" icon={LogOut} tone="accent" confirmLabel="Salir" formAction={logout} onClose={() => setDialog(null)}>
+          <p>Tu equipo queda guardado y el widget sigue funcionando en OBS. Para volver al panel tendrás que iniciar sesión con Google.</p>
+        </ConfirmDialog>
+      )}
     </header>
   );
 }
