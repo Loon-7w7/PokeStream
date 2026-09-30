@@ -1,8 +1,9 @@
 "use client";
-// /admin: modo de registro, invitaciones y usuarios (bloquear, quitar invitación, cerrar sesiones).
+// /admin: resumen arriba y dos pestañas: acceso (modo de registro, invitaciones y usuarios) y estadísticas (gráficas).
 import {
   ArrowLeft,
   Ban,
+  ChartColumn,
   CircleAlert,
   DoorOpen,
   LockKeyhole,
@@ -26,8 +27,17 @@ import { cx } from "@/core/ui/cx";
 import { Logo } from "@/core/ui/Logo";
 import * as A from "../actions";
 import type { AdminState, AdminUser, AdminUserStatus } from "../types";
+import { AdminCharts } from "./AdminCharts";
+
+type Tab = "access" | "charts";
+
+const TABS: [Tab, string, React.ComponentType<{ className?: string }>][] = [
+  ["access", "Usuarios y acceso", Users],
+  ["charts", "Estadísticas", ChartColumn],
+];
 
 export function AdminPanel({ state }: { state: AdminState }) {
+  const [tab, setTab] = useState<Tab>("access");
   return (
     <ActionProvider>
       <div className="min-h-screen bg-bg text-text">
@@ -51,14 +61,45 @@ export function AdminPanel({ state }: { state: AdminState }) {
         <main className="mx-auto grid max-w-[1200px] gap-5 px-4 py-5">
           <ErrorBanner />
           <Stats state={state} />
-          <div className="grid gap-5 md:grid-cols-2">
-            <RegistrationMode open={state.registrationOpen} />
-            <InviteForm />
-          </div>
-          <UserTable users={state.users} />
+          <Tabs tab={tab} onChange={setTab} />
+          {tab === "access" ? (
+            <div role="tabpanel" aria-label="Usuarios y acceso" className="grid gap-5">
+              <div className="grid gap-5 md:grid-cols-2">
+                <RegistrationMode open={state.registrationOpen} />
+                <InviteForm />
+              </div>
+              <UserTable users={state.users} />
+            </div>
+          ) : (
+            <div role="tabpanel" aria-label="Estadísticas">
+              <AdminCharts charts={state.charts} spritesBase={state.spritesBase} />
+            </div>
+          )}
         </main>
       </div>
     </ActionProvider>
+  );
+}
+
+function Tabs({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
+  return (
+    <div role="tablist" aria-label="Secciones" className="grid w-full max-w-md grid-cols-2 gap-1 rounded-lg border border-line bg-panel p-1 text-sm">
+      {TABS.map(([value, label, Icon]) => (
+        <button
+          key={value}
+          role="tab"
+          aria-selected={tab === value}
+          onClick={() => onChange(value)}
+          className={cx(
+            "inline-flex items-center justify-center gap-1.5 rounded-md py-1.5",
+            tab === value ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text",
+          )}
+        >
+          <Icon className="size-4" />
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }
 

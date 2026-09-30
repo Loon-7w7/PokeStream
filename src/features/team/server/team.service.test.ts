@@ -86,3 +86,21 @@ describe("team.service (integración)", () => {
     await expect(team.replaceSpecies(2, "fakemon")).rejects.toThrow("Pokémon desconocido");
   });
 });
+
+describe("estadísticas para /admin (integración)", () => {
+  it("cuenta especies y muertes por run", async () => {
+    const { getCurrentRun } = await import("@/features/run");
+    await team.startNewGame();
+    await team.replaceSpecies(0, "pikachu");
+    await team.replaceSpecies(1, "pikachu");
+    await team.replaceSpecies(2, "eevee");
+    await team.updateSlot(2, { fainted: true });
+
+    const usage = await team.getSpeciesUsage(10);
+    expect(usage[0]).toMatchObject({ speciesId: "pikachu", name: "Pikachu", count: 2 });
+    expect(usage[1]).toMatchObject({ speciesId: "eevee", count: 1 });
+
+    const { id } = await getCurrentRun();
+    expect(await team.countDeathsByRuns([id, "otra"])).toEqual(new Map([[id, 1], ["otra", 0]]));
+  });
+});

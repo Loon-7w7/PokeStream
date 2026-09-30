@@ -34,3 +34,11 @@ export interface StorageView {
   box: StoredView[];
   graveyard: StoredView[];
 }
+
+/** Uso de una especie en todos los equipos (estadísticas de /admin). */
+export interface SpeciesUsage {
+  speciesId: string;
+  name: string;
+  spriteId: string;
+  count: number;
+}

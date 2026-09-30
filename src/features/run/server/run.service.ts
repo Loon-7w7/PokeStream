@@ -36,7 +36,7 @@ export async function getWidgetAccess(runId: string): Promise<{ token: string; b
 
 /** Usuarios con run (registrados). Para /admin: la autorización la pone quien compone. */
 export async function listRunOwners(): Promise<RunOwner[]> {
-  return (await runs.listOwnedRuns()).map((r) => ({ runId: r.id, email: r.ownerEmail!, createdAt: r.createdAt.toISOString() }));
+  return (await runs.listOwnedRuns()).map((r) => ({ runId: r.id, email: r.ownerEmail!, createdAt: r.createdAt.toISOString(), nuzlocke: r.nuzlocke }));
 }
 
 /** Avisa a los widgets de la run de `email` para que relean su estado (p. ej. tras bloquearlo). */

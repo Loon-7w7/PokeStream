@@ -5,7 +5,7 @@ import { fail } from "@/core/result";
 import { getCurrentRun, mutateRun, resetRunInfo, type MutationContext } from "@/features/run";
 import * as domain from "../domain/slot";
 import * as box from "../domain/storage";
-import { TEAM_SIZE, type SlotData, type SlotPatch, type SlotView, type StorageView } from "../types";
+import { TEAM_SIZE, type SlotData, type SlotPatch, type SlotView, type SpeciesUsage, type StorageView } from "../types";
 import * as slots from "./slot.repository";
 import * as storage from "./storage.repository";
 
@@ -44,6 +44,20 @@ export async function getTeamByRunId(runId: string): Promise<SlotView[]> {
 export async function countDeathsByRunId(runId: string): Promise<number> {
   const [team, stored] = await Promise.all([slots.listSlots(runId), storage.getStorage(runId)]);
   return box.countDeaths(team, stored);
+}
+
+/** Especies más usadas en todos los equipos, con nombre y sprite. Para /admin (la autorización la pone quien compone). */
+export async function getSpeciesUsage(limit: number): Promise<SpeciesUsage[]> {
+  return (await slots.countSpecies(limit)).map(({ species, count }) => {
+    const d = describeSet({ species, ability: "", item: "", nature: "", moves: [] });
+    return { speciesId: species, name: d.speciesName || species, spriteId: d.spriteId, count };
+  });
+}
+
+/** Muertes (Muertos + debilitados en el equipo) de varias runs en dos consultas. */
+export async function countDeathsByRuns(runIds: string[]): Promise<Map<string, number>> {
+  const [fainted, graveyard] = await Promise.all([slots.countFaintedByRun(runIds), storage.countGraveyardByRun(runIds)]);
+  return new Map(runIds.map((id) => [id, (fainted.get(id) ?? 0) + (graveyard.get(id) ?? 0)]));
 }
 
 /** Sets en formato neutro (para exportar). */

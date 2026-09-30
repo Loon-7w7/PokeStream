@@ -16,3 +16,9 @@ export async function saveStorage(runId: string, storage: StoredSets, db: Db = p
   const data = { box: formatShowdown(storage.box), graveyard: formatShowdown(storage.graveyard) };
   await db.storage.upsert({ where: { runId }, update: data, create: { runId, ...data } });
 }
+
+/** Pokémon en Muertos, por run. */
+export async function countGraveyardByRun(runIds: string[], db: Db = prisma): Promise<Map<string, number>> {
+  const rows = await db.storage.findMany({ where: { runId: { in: runIds } }, select: { runId: true, graveyard: true } });
+  return new Map(rows.map((r) => [r.runId, parse(r.graveyard).length]));
+}

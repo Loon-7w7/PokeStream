@@ -87,3 +87,21 @@ export async function reorderSlots(runId: string, order: number[], db: Db = pris
     await db.slot.update({ where: { id: idByPos.get(oldPos)! }, data: { position: newPos } });
   }
 }
+
+/** Especies más usadas en todos los equipos (una por slot ocupado). Para /admin. */
+export async function countSpecies(limit: number, db: Db = prisma) {
+  const rows = await db.slot.groupBy({
+    by: ["species"],
+    where: { species: { not: "" } },
+    _count: { _all: true },
+    orderBy: { _count: { species: "desc" } },
+    take: limit,
+  });
+  return rows.map((r) => ({ species: r.species, count: r._count._all }));
+}
+
+/** Debilitados que siguen en el equipo, por run. */
+export async function countFaintedByRun(runIds: string[], db: Db = prisma): Promise<Map<string, number>> {
+  const rows = await db.slot.groupBy({ by: ["runId"], where: { runId: { in: runIds }, fainted: true, species: { not: "" } }, _count: { _all: true } });
+  return new Map(rows.map((r) => [r.runId, r._count._all]));
+}

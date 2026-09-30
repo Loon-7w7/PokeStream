@@ -26,9 +26,22 @@ export interface AdminStats {
   blocked: number;
 }
 
+/** Datos de las gráficas de /admin (ya agregados en el servidor). */
+export interface AdminCharts {
+  /** Embudo de la beta, de más amplio a más estrecho. */
+  funnel: { label: string; value: number }[];
+  /** Registros por semana (lunes UTC en ISO), las últimas 12, de la más antigua a la actual. */
+  weekly: { week: string; count: number }[];
+  /** Especies más usadas en los equipos actuales. */
+  topSpecies: { speciesId: string; name: string; spriteId: string; count: number }[];
+  modes: { nuzlocke: number; normal: number; avgDeaths: number | null; maxDeaths: number };
+}
+
 export interface AdminState {
   appName: string;
+  spritesBase: string;
   registrationOpen: boolean;
   users: AdminUser[];
   stats: AdminStats;
+  charts: AdminCharts;
 }

@@ -47,6 +47,7 @@ export interface RunOwner {
   runId: string;
   email: string;
   createdAt: string; // ISO
+  nuzlocke: boolean;
 }
 
 export interface RunOverview {

@@ -10,7 +10,7 @@ Panel web + widget de OBS (SSE) que muestra el equipo Pokémon del streamer en v
 - UI y mensajes en español. Datos Pokémon en inglés (formato Showdown). Identificadores en inglés.
 
 ## Stack
-Next 16 (App Router, React 19, Turbopack) · Tailwind v4 · Prisma 7 + SQLite (adapter libsql: binarios precompilados, nunca node-gyp) · @pkmn/dex/@pkmn/sets · zod 4 · fuse.js · dnd-kit · vitest.
+Next 16 (App Router, React 19, Turbopack) · Tailwind v4 · Prisma 7 + SQLite (adapter libsql: binarios precompilados, nunca node-gyp) · @pkmn/dex/@pkmn/sets · zod 4 · fuse.js · dnd-kit · react-joyride (tour) · recharts (gráficas de /admin) · vitest.
 Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refresh()` de `next/cache` en server actions.
 
 ## Reglas que no se rompen
@@ -43,7 +43,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `features/showdown` | Exportar el equipo · importar a la caja (`addSetsToBox`); `ShowdownBox` (botones + diálogo de importar), `CopySlotButton` |
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots y contador, posiciones en `Run.slotPositions`/`deathCounterPosition`), contador de muertes (`deaths`: solo en Nuzlocke, `countDeaths` en `team/domain/storage.ts`) |
 | `features/legal` | `PrivacyPolicy` (ruta pública `/privacidad`) |
-| `features/admin` | `/admin` (solo admins, si no 404): modo de registro, invitar, bloquear (corta panel y widget en vivo), cerrar sesiones, usuarios y estadísticas (`buildAdminUsers` en `domain/users.ts`) |
+| `features/admin` | `/admin` (solo admins, si no 404): modo de registro, invitar, bloquear (corta panel y widget en vivo), cerrar sesiones, usuarios y estadísticas (`buildAdminUsers` en `domain/users.ts`); gráficas con Recharts (`AdminCharts`): embudo, registros por semana, top Pokémon y Nuzlocke/muertes (agregados en `domain/charts.ts`) |
 | `features/tour` | Tour guiado con React Joyride (`useGuidedTour` → `{ start, Tour }`, pasos en `ui/steps.tsx` → apuntan a `data-tour="…"`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas, panel lateral plegable, `ProfileMenu`: cuenta, admin, tour y salir) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |

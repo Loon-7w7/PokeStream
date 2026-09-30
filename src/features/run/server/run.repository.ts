@@ -45,7 +45,7 @@ export const findRunByToken = (widgetToken: string, db: Db = prisma) =>
 
 /** Runs con dueño (una por usuario registrado), para /admin. */
 export const listOwnedRuns = (db: Db = prisma) =>
-  db.run.findMany({ where: { ownerEmail: { not: null } }, select: { id: true, ownerEmail: true, createdAt: true }, orderBy: { createdAt: "desc" } });
+  db.run.findMany({ where: { ownerEmail: { not: null } }, select: { id: true, ownerEmail: true, createdAt: true, nuzlocke: true }, orderBy: { createdAt: "desc" } });
 
 export const updateRunInfo = (id: string, info: Partial<RunInfo>, db: Db = prisma) =>
   db.run.update({ where: { id }, data: info });
