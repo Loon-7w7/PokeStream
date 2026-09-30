@@ -31,8 +31,10 @@ export async function getWidgetRun(runId: string): Promise<{ config: WidgetConfi
 
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);
 
+/** El Nuzlocke no se puede desactivar: solo "Nueva partida" lo apaga (resetRunInfo). */
 export const updateRunInfo = (info: Partial<RunInfo>) =>
-  mutateRun(async ({ db, runId }) => {
+  mutateRun(async ({ db, runId, nuzlocke }) => {
+    if (nuzlocke && info.nuzlocke === false) fail("INVALID", "El modo Nuzlocke no se puede desactivar. Empieza una nueva partida para salir de él.");
     await runs.updateRunInfo(runId, info, db);
   });
 

@@ -1,8 +1,9 @@
 "use client";
 // Panel: URL para OBS, vista previa en vivo y ajustes visuales del widget.
-import { Check, Copy, KeyRound, Move, Rows3, Skull, type LucideIcon } from "lucide-react";
+import { Check, Copy, KeyRound, Move, Rows3, Skull, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
+import { ConfirmDialog } from "@/core/ui/ConfirmDialog";
 import { regenerateWidgetToken, updateWidgetConfig } from "@/features/run/actions";
 import type { WidgetConfig, WidgetConfigPatch, WidgetLayout } from "@/features/run/types";
 import { cx } from "@/core/ui/cx";
@@ -35,11 +36,12 @@ export function WidgetSettings(props: {
   spritesBase: string;
 }) {
   const { config: serverConfig, widgetToken, nuzlocke } = props;
-  const { run } = useAction();
+  const { run, pending } = useAction();
   const [config, applyOptimistic] = useOptimistic(serverConfig, (c: WidgetConfig, p: WidgetConfigPatch) => ({ ...c, ...p }));
   const origin = useSyncExternalStore(noopSubscribe, () => window.location.origin, () => "");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const url = `${origin}/widget/${widgetToken}`;
   // El contador solo existe en Nuzlocke: fuera de él no se muestra aunque esté activado
   const showCounter = nuzlocke && config.deathCounter;
@@ -145,12 +147,33 @@ export function WidgetSettings(props: {
       </label>
 
       <button
-        onClick={() => confirm("La URL actual dejará de funcionar y tendrás que pegar la nueva en OBS. ¿Continuar?") && run(regenerateWidgetToken)}
+        onClick={() => setRegenerating(true)}
         className="mt-4 inline-flex items-center gap-1 text-xs text-muted underline-offset-2 hover:text-bad hover:underline"
       >
         <KeyRound className="size-3.5" />
         Regenerar URL (si se filtró)
       </button>
+
+      {regenerating && (
+        <ConfirmDialog
+          title="¿Regenerar la URL del widget?"
+          icon={KeyRound}
+          tone="warn"
+          confirmLabel="Sí, regenerar"
+          pending={pending}
+          onConfirm={async () => {
+            const res = await run(regenerateWidgetToken);
+            if (res?.ok) setRegenerating(false);
+          }}
+          onClose={() => setRegenerating(false)}
+        >
+          <p>Úsalo si alguien más consiguió tu URL. Se crea una nueva y la actual deja de funcionar al instante.</p>
+          <p className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-warn">
+            <TriangleAlert className="size-4 shrink-0" />
+            Tendrás que pegar la URL nueva en la fuente de navegador de OBS.
+          </p>
+        </ConfirmDialog>
+      )}
 
       {editing && (
         <PositionEditor

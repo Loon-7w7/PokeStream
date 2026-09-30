@@ -35,7 +35,7 @@ export const TOUR_STEPS: Step[] = [
   {
     target: at("nuzlocke"),
     title: "Modo Nuzlocke",
-    content: "Actívalo si juegas un Nuzlocke: un Pokémon debilitado ya no puede revivir y podrás mostrar un contador de muertes en el widget.",
+    content: "Actívalo si juegas un Nuzlocke: un Pokémon debilitado ya no puede revivir y podrás mostrar un contador de muertes en el widget. Una vez activo, solo una nueva partida lo apaga.",
   },
   {
     target: at("new-game"),
