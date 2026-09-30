@@ -27,6 +27,7 @@ export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProp
 
         <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div>
         <button
+          data-tour="nuzlocke"
           onClick={() => run(() => updateRunInfo({ nuzlocke: !info.nuzlocke }))}
           aria-pressed={info.nuzlocke}
           title="En modo Nuzlocke un Pokémon debilitado no puede revivir"

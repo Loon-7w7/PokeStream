@@ -8,6 +8,7 @@ import { ActionProvider, useAction } from "@/core/ui/actions";
 import { RunHeader } from "@/features/run/ui";
 import { CopySlotButton, ShowdownBox } from "@/features/showdown/ui";
 import { NewGameButton, StoragePanel, TeamSection } from "@/features/team/ui";
+import { GuidedTour } from "@/features/tour/ui";
 import { WidgetSettings } from "@/features/widget/ui";
 import type { DashboardState } from "../types";
 import { Footer } from "./Footer";
@@ -17,7 +18,17 @@ export function Dashboard({ state }: { state: DashboardState }) {
     <ActionProvider>
       <LiveSync token={state.run.widgetToken} />
       <div className="flex min-h-screen flex-col bg-bg text-text">
-        <RunHeader info={state.run.info} appName={state.appName} authEnabled={state.authEnabled} actions={<NewGameButton />} />
+        <RunHeader
+          info={state.run.info}
+          appName={state.appName}
+          authEnabled={state.authEnabled}
+          actions={
+            <>
+              <GuidedTour />
+              <NewGameButton />
+            </>
+          }
+        />
         <ErrorBanner />
         <main className="mx-auto grid w-full max-w-[1500px] flex-1 content-start gap-5 px-4 py-5 lg:grid-cols-[1fr_380px]">
           <div className="flex min-w-0 flex-col gap-5">

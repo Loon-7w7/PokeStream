@@ -17,7 +17,7 @@ export function NewGameButton() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-warn hover:text-warn">
+      <button data-tour="new-game" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-warn hover:text-warn">
         <RotateCcw className="size-4" />
         Nueva partida
       </button>

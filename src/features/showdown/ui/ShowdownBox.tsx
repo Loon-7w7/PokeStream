@@ -33,7 +33,7 @@ export function ShowdownBox() {
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-panel p-4">
+    <div data-tour="showdown" className="rounded-2xl border border-line bg-panel p-4">
       <h2 className="mb-3 font-semibold">Pokémon Showdown</h2>
       <div className="grid grid-cols-3 gap-2 text-sm">
         <button onClick={() => exportTeam(false)} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 font-semibold text-bg hover:brightness-110">

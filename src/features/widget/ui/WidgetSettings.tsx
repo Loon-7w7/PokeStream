@@ -50,7 +50,7 @@ export function WidgetSettings(props: {
     <div className="rounded-2xl border border-line bg-panel p-4">
       <h2 className="mb-3 font-semibold">Widget para OBS</h2>
 
-      <div className="flex gap-2">
+      <div data-tour="widget-url" className="flex gap-2">
         <input
           readOnly
           value={url}
@@ -76,7 +76,7 @@ export function WidgetSettings(props: {
 
       <Preview url={origin ? url : ""} />
 
-      <div className="mt-4 grid gap-2">
+      <div data-tour="widget-options" className="mt-4 grid gap-2">
         <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="radiogroup" aria-label="Distribución">
           {LAYOUTS.map(([value, label, Icon]) => (
             <button
