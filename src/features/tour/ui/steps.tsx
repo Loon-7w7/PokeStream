@@ -67,8 +67,8 @@ export const TOUR_STEPS: Step[] = [
     targetWaitTimeout: 0, // en pantallas pequeñas el botón no existe: se salta el paso
   },
   {
-    target: at("tour"),
+    target: at("profile"),
     title: "¡Listo!",
-    content: "Puedes repetir este tour cuando quieras desde este botón.",
+    content: "Desde tu perfil puedes repetir este tour cuando quieras o cerrar sesión.",
   },
 ];

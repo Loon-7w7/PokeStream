@@ -1,24 +1,24 @@
 "use client";
-import { CircleCheck, Lock, LoaderCircle, LogOut, Skull } from "lucide-react";
+import { CircleCheck, Lock, LoaderCircle, Skull } from "lucide-react";
 import { useState } from "react";
 import { useAction } from "@/core/ui/actions";
 import { ConfirmDialog } from "@/core/ui/ConfirmDialog";
 import { Logo } from "@/core/ui/Logo";
-import { logout } from "@/features/auth/actions";
 import { updateRunInfo } from "../actions";
 import type { RunInfo } from "../types";
 
 export interface RunHeaderProps {
   info: RunInfo;
   appName: string;
-  authEnabled: boolean;
   /** Acciones extra que inyecta quien compone (p. ej. "Nueva partida"). */
   actions?: React.ReactNode;
+  /** Menú de perfil al final de la cabecera (lo compone el dashboard). */
+  profile?: React.ReactNode;
 }
 
-export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProps) {
+export function RunHeader({ info, appName, actions, profile }: RunHeaderProps) {
   const { run, pending } = useAction();
-  const [dialog, setDialog] = useState<"nuzlocke" | "logout" | null>(null);
+  const [dialog, setDialog] = useState<"nuzlocke" | null>(null);
 
   const activateNuzlocke = async () => {
     const res = await run(() => updateRunInfo({ nuzlocke: true }));
@@ -55,19 +55,23 @@ export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProp
             {pending ? <LoaderCircle className="size-3.5 animate-spin" /> : <CircleCheck className="size-3.5" />}
             {pending ? "Guardando…" : "Sincronizado"}
           </span>
-          {authEnabled && (
-            <button onClick={() => setDialog("logout")} className="inline-flex items-center gap-1 rounded-md border border-line px-2 py-1 text-muted hover:text-text">
-              <LogOut className="size-3.5" />
-              Salir
-            </button>
-          )}
+          {profile}
         </div>
       </div>
 
       {dialog === "nuzlocke" && (
-        <ConfirmDialog title="¿Activar el modo Nuzlocke?" icon={Skull} confirmLabel="Sí, activar" pending={pending} onConfirm={activateNuzlocke} onClose={() => setDialog(null)}>
+        <ConfirmDialog
+          title="¿Activar el modo Nuzlocke?"
+          icon={Skull}
+          confirmLabel="Sí, activar"
+          pending={pending}
+          onConfirm={activateNuzlocke}
+          onClose={() => setDialog(null)}
+        >
           <ul className="grid gap-2">
-            <li>Un Pokémon debilitado queda <b>muerto</b>: no se puede revivir.</li>
+            <li>
+              Un Pokémon debilitado queda <b>muerto</b>: no se puede revivir.
+            </li>
             <li>
               Al sacarlo del equipo va a <b>Muertos</b>, no a la caja.
             </li>
@@ -77,11 +81,6 @@ export function RunHeader({ info, appName, authEnabled, actions }: RunHeaderProp
             <Lock className="size-4 shrink-0" />
             No se puede desactivar: solo una nueva partida lo apaga.
           </p>
-        </ConfirmDialog>
-      )}
-      {dialog === "logout" && (
-        <ConfirmDialog title="¿Cerrar sesión?" icon={LogOut} tone="accent" confirmLabel="Salir" formAction={logout} onClose={() => setDialog(null)}>
-          <p>Tu equipo queda guardado y el widget sigue funcionando en OBS. Para volver al panel tendrás que iniciar sesión con Google.</p>
         </ConfirmDialog>
       )}
     </header>

@@ -1,7 +1,7 @@
 "use client";
-// Tour guiado del panel (React Joyride). Arranca solo la primera vez y se repite con el botón «?».
+// Tour guiado del panel (React Joyride). Arranca solo la primera vez; quien compone lo repite con `start`.
 // "Ya visto" se guarda en localStorage: es una comodidad por navegador, no estado del servidor.
-import { CircleHelp, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect } from "react";
 import { EVENTS, useJoyride, type EventData, type TooltipRenderProps } from "react-joyride";
 import { TOUR_STEPS } from "./steps";
@@ -22,8 +22,11 @@ function markSeen() {
   } catch {}
 }
 
-/** `onStart`: quien compone prepara el panel (p. ej. mostrar el panel lateral) antes de empezar. */
-export function GuidedTour({ onStart }: { onStart?: () => void }) {
+/**
+ * Hook del tour: `Tour` se renderiza una vez en el panel y `start` lo lanza desde donde sea (p. ej. el menú de perfil).
+ * `onStart`: quien compone prepara el panel (p. ej. mostrar el panel lateral) antes de empezar.
+ */
+export function useGuidedTour({ onStart }: { onStart?: () => void } = {}) {
   const { controls, Tour } = useJoyride({
     steps: TOUR_STEPS,
     continuous: true,
@@ -53,20 +56,7 @@ export function GuidedTour({ onStart }: { onStart?: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <>
-      <button
-        data-tour="tour"
-        onClick={start}
-        title="Ver el tour del panel"
-        aria-label="Ver el tour del panel"
-        className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"
-      >
-        <CircleHelp className="size-4" />
-      </button>
-      {Tour}
-    </>
-  );
+  return { start, Tour };
 }
 
 /** Globo del tour con el estilo del panel. */

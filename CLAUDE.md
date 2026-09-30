@@ -36,7 +36,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `ConfirmDialog` (confirmar acciones importantes), `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
 | `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), acceso: `canEnter` (`domain/access.ts`: admin siempre, bloqueado nunca, si no registro abierto o invitado) + tablas `Access`/`AccessSettings` (`server/access.*`), `ADMIN_EMAILS` en .env, `requireAdmin`/`isCurrentUserAdmin`, `isEmailBlocked` (run corta el widget del bloqueado); `requireUser` (correo o `UNAUTHORIZED`), `isSignedIn`, `LOCAL_USER` sin login, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
-| `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`; el Nuzlocke no se desactiva salvo con Nueva partida), config del widget, `RunHeader` (acepta `actions`) |
+| `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`; el Nuzlocke no se desactiva salvo con Nueva partida), config del widget, `RunHeader` (acepta `actions` y `profile`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
 | `features/team/ui/` | `TeamSection` (atajos 1-6/R/E/F, dnd, optimista), `SlotCard`, `SpeciesPicker`, `EditSlotDialog`, `StoragePanel` (pestañas Caja/Muertos), `NewGameButton` (`startNewGame`) |
@@ -44,8 +44,8 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots y contador, posiciones en `Run.slotPositions`/`deathCounterPosition`), contador de muertes (`deaths`: solo en Nuzlocke, `countDeaths` en `team/domain/storage.ts`) |
 | `features/legal` | `PrivacyPolicy` (ruta pública `/privacidad`) |
 | `features/admin` | `/admin` (solo admins, si no 404): modo de registro, invitar, bloquear (corta panel y widget en vivo), cerrar sesiones, usuarios y estadísticas (`buildAdminUsers` en `domain/users.ts`) |
-| `features/tour` | Tour guiado con React Joyride (`GuidedTour`, pasos en `ui/steps.tsx` → apuntan a `data-tour="…"`) |
-| `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
+| `features/tour` | Tour guiado con React Joyride (`useGuidedTour` → `{ start, Tour }`, pasos en `ui/steps.tsx` → apuntan a `data-tour="…"`) |
+| `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas, panel lateral plegable, `ProfileMenu`: cuenta, admin, tour y salir) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |
 
 ## Recetas

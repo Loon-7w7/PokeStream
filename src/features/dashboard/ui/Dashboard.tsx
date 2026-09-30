@@ -1,8 +1,7 @@
 "use client";
 // Composición del panel. El estado viene del servidor (props); las acciones hacen refresh()
 // y Next re-renderiza con datos nuevos. Cambios desde otra pestaña llegan por SSE -> router.refresh().
-import { ChevronLeft, ChevronRight, CircleAlert, ShieldCheck, X } from "lucide-react";
-import Link from "next/link";
+import { ChevronLeft, ChevronRight, CircleAlert, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
@@ -10,14 +9,16 @@ import { cx } from "@/core/ui/cx";
 import { RunHeader } from "@/features/run/ui";
 import { CopySlotButton, ShowdownBox } from "@/features/showdown/ui";
 import { NewGameButton, StoragePanel, TeamSection } from "@/features/team/ui";
-import { GuidedTour } from "@/features/tour/ui";
+import { useGuidedTour } from "@/features/tour/ui";
 import { WidgetSettings } from "@/features/widget/ui";
 import type { DashboardState } from "../types";
 import { Footer } from "./Footer";
+import { ProfileMenu } from "./ProfileMenu";
 
 export function Dashboard({ state }: { state: DashboardState }) {
   // Panel lateral (widget + Showdown) plegable en escritorio. En móvil va debajo y siempre visible.
   const [sideOpen, setSideOpen] = useState(true);
+  const tour = useGuidedTour({ onStart: () => setSideOpen(true) });
 
   return (
     <ActionProvider>
@@ -26,23 +27,10 @@ export function Dashboard({ state }: { state: DashboardState }) {
         <RunHeader
           info={state.run.info}
           appName={state.appName}
-          authEnabled={state.authEnabled}
-          actions={
-            <>
-              {state.isAdmin && (
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"
-                >
-                  <ShieldCheck className="size-4" />
-                  Admin
-                </Link>
-              )}
-              <GuidedTour onStart={() => setSideOpen(true)} />
-              <NewGameButton />
-            </>
-          }
+          actions={<NewGameButton />}
+          profile={<ProfileMenu email={state.userEmail} isAdmin={state.isAdmin} onStartTour={tour.start} />}
         />
+        {tour.Tour}
         <ErrorBanner />
         <main
           className={cx(

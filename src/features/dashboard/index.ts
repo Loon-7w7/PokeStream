@@ -1,7 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { env } from "@/core/config/env";
-import { isAuthEnabled, isCurrentUserAdmin, isSignedIn } from "@/features/auth";
+import { getCurrentUser, isAuthEnabled, isCurrentUserAdmin, isSignedIn } from "@/features/auth";
 import { getRunOverview } from "@/features/run";
 import { getStorageView, getTeamView } from "@/features/team";
 import { getWidgetState } from "@/features/widget";
@@ -18,7 +18,7 @@ export async function getDashboardState(): Promise<DashboardState> {
   const [team, storage, widget] = await Promise.all([getTeamView(), getStorageView(), getWidgetState(run.id)]);
   return {
     appName: env.APP_NAME,
-    authEnabled: isAuthEnabled(),
+    userEmail: isAuthEnabled() ? await getCurrentUser() : null,
     isAdmin: await isCurrentUserAdmin(),
     spritesBase: env.SPRITES_BASE_URL,
     kofiUrl: env.KOFI_URL,

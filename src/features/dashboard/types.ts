@@ -5,7 +5,8 @@ import type { WidgetSlot } from "@/features/widget/types";
 /** Todo lo que el panel necesita en una sola lectura. */
 export interface DashboardState {
   appName: string;
-  authEnabled: boolean;
+  /** Correo de la sesión; null sin login (uso local). */
+  userEmail: string | null;
   /** Muestra el acceso a /admin en la cabecera. */
   isAdmin: boolean;
   spritesBase: string;

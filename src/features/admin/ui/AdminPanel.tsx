@@ -33,18 +33,18 @@ export function AdminPanel({ state }: { state: AdminState }) {
       <div className="min-h-screen bg-bg text-text">
         <header className="border-b border-line bg-panel">
           <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-4 px-4 py-3">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"
-            >
-              <ArrowLeft className="size-4" />
-              Volver al panel
-            </Link>
             <div className="flex items-center gap-2.5">
               <Logo size={30} />
               <span className="text-lg font-bold">{state.appName}</span>
               <span className="rounded-md bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent">Admin</span>
             </div>
+            <Link
+              href="/"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"
+            >
+              <ArrowLeft className="size-4" />
+              Volver al panel
+            </Link>
           </div>
         </header>
 
