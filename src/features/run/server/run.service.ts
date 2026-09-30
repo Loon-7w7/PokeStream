@@ -1,7 +1,8 @@
 import "server-only";
+import { isEmailBlocked } from "@/features/auth";
 import { bus, channels } from "@/core/realtime/bus";
 import { fail } from "@/core/result";
-import type { RunInfo, RunOverview, WidgetConfig, WidgetConfigPatch } from "../types";
+import type { RunInfo, RunOverview, RunOwner, WidgetConfig, WidgetConfigPatch } from "../types";
 import { getCurrentRun, isWidgetTokenFormat, newWidgetToken } from "./current-run";
 import * as runs from "./run.repository";
 import { mutateRun, type MutationContext } from "./unit-of-work";
@@ -18,10 +19,31 @@ export async function getRunOverview(): Promise<RunOverview> {
   };
 }
 
-export const findRunIdByWidgetToken = async (token: string) => (isWidgetTokenFormat(token) ? runs.findRunIdByToken(token) : null);
+/** Un dueño bloqueado por el admin pierde también su widget. */
+const isOwnerBlocked = async (ownerEmail: string | null) => ownerEmail !== null && (await isEmailBlocked(ownerEmail));
 
-/** Token vigente de la run (null si la run no existe). */
-export const getWidgetToken = async (runId: string) => (await runs.findRunById(runId))?.widgetToken ?? null;
+/** Run del token del widget; null si el token no existe o su dueño está bloqueado. */
+export async function findRunIdByWidgetToken(token: string): Promise<string | null> {
+  const run = isWidgetTokenFormat(token) ? await runs.findRunByToken(token) : null;
+  return run && !(await isOwnerBlocked(run.ownerEmail)) ? run.id : null;
+}
+
+/** Token vigente de la run y si su dueño está bloqueado (null si la run no existe). */
+export async function getWidgetAccess(runId: string): Promise<{ token: string; blocked: boolean } | null> {
+  const run = await runs.findRunById(runId);
+  return run && { token: run.widgetToken, blocked: await isOwnerBlocked(run.ownerEmail) };
+}
+
+/** Usuarios con run (registrados). Para /admin: la autorización la pone quien compone. */
+export async function listRunOwners(): Promise<RunOwner[]> {
+  return (await runs.listOwnedRuns()).map((r) => ({ runId: r.id, email: r.ownerEmail!, createdAt: r.createdAt.toISOString() }));
+}
+
+/** Avisa a los widgets de la run de `email` para que relean su estado (p. ej. tras bloquearlo). */
+export async function notifyOwnerRun(email: string) {
+  const run = await runs.findRunByOwner(email);
+  if (run) bus.publish(channels.run(run.id));
+}
 
 /** Lo que el widget necesita de la run: su config y si está en Nuzlocke (null si no existe). */
 export async function getWidgetRun(runId: string): Promise<{ config: WidgetConfig; nuzlocke: boolean } | null> {

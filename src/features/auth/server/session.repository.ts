@@ -11,3 +11,5 @@ export const findSession = (id: string, db: Db = prisma) => db.session.findUniqu
 export const deleteSession = (id: string, db: Db = prisma) => db.session.deleteMany({ where: { id } });
 
 export const deleteExpiredSessions = (now: Date, db: Db = prisma) => db.session.deleteMany({ where: { expiresAt: { lte: now } } });
+
+export const deleteSessionsOf = (email: string, db: Db = prisma) => db.session.deleteMany({ where: { email } });

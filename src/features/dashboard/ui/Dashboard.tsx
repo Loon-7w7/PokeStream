@@ -1,7 +1,8 @@
 "use client";
 // Composición del panel. El estado viene del servidor (props); las acciones hacen refresh()
 // y Next re-renderiza con datos nuevos. Cambios desde otra pestaña llegan por SSE -> router.refresh().
-import { ChevronLeft, ChevronRight, CircleAlert, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, CircleAlert, ShieldCheck, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionProvider, useAction } from "@/core/ui/actions";
@@ -28,6 +29,15 @@ export function Dashboard({ state }: { state: DashboardState }) {
           authEnabled={state.authEnabled}
           actions={
             <>
+              {state.isAdmin && (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-accent hover:text-accent"
+                >
+                  <ShieldCheck className="size-4" />
+                  Admin
+                </Link>
+              )}
               <GuidedTour onStart={() => setSideOpen(true)} />
               <NewGameButton />
             </>
@@ -112,7 +122,7 @@ function LiveSync({ token }: { token: string }) {
   const router = useRouter();
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    const es = new EventSource(`/api/stream/${encodeURIComponent(token)}`);
+    const es = new EventSource(`/api/stream/${encodeURIComponent(token)}?client=panel`);
     es.addEventListener("state", () => {
       clearTimeout(timer);
       timer = setTimeout(() => router.refresh(), 150); // agrupa ráfagas de cambios

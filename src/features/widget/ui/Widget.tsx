@@ -8,17 +8,37 @@ import { TypeBadge } from "@/core/ui/TypeBadge";
 import type { SlotPoint, WidgetConfig } from "@/features/run/types";
 import type { WidgetSlot, WidgetState } from "../types";
 
+/** Espera antes de reconectar si el servidor rechazó el stream. */
+const RETRY_MS = 30_000;
+
 export function Widget({ token, initial, spritesBase }: { token: string; initial: WidgetState; spritesBase: string }) {
   const [state, setState] = useState<WidgetState | null>(initial);
 
   useEffect(() => {
-    const es = new EventSource(`/api/stream/${encodeURIComponent(token)}`);
-    es.addEventListener("state", (e) => setState(JSON.parse((e as MessageEvent).data)));
-    es.addEventListener("revoked", () => {
-      setState(null);
+    let es: EventSource;
+    let retry: ReturnType<typeof setTimeout>;
+    let stopped = false;
+    const connect = () => {
+      es = new EventSource(`/api/stream/${encodeURIComponent(token)}`);
+      es.addEventListener("state", (e) => setState(JSON.parse((e as MessageEvent).data)));
+      // Bloqueado: en blanco; al desbloquear, el reintento de abajo lo recupera
+      es.addEventListener("blocked", () => setState(null));
+      es.addEventListener("revoked", () => {
+        setState(null);
+        stopped = true;
+        es.close();
+      });
+      // Si el servidor rechaza la conexión (bloqueado o caído), EventSource se rinde: reintentar
+      es.onerror = () => {
+        if (!stopped && es.readyState === EventSource.CLOSED) retry = setTimeout(connect, RETRY_MS);
+      };
+    };
+    connect();
+    return () => {
+      stopped = true;
+      clearTimeout(retry);
       es.close();
-    });
-    return () => es.close();
+    };
   }, [token]);
 
   if (!state) return null;

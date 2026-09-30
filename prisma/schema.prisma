@@ -70,6 +70,23 @@ model Storage {
   graveyard String @default("")
 }
 
+// Control de acceso (dueña: feature auth). Una fila por correo invitado, bloqueado o que ya entró.
+// Los admins (ADMIN_EMAILS en .env) siempre pueden entrar.
+model Access {
+  email       String    @id
+  invited     Boolean   @default(false)
+  blocked     Boolean   @default(false) // sin panel ni widget
+  lastLoginAt DateTime? // último inicio de sesión con Google
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Ajustes de acceso (una sola fila, id = 1). Dueña: feature auth.
+model AccessSettings {
+  id               Int     @id @default(1)
+  registrationOpen Boolean @default(false) // false = solo invitados (beta cerrada)
+}
+
 // Sesiones del panel. La cookie lleva el id firmado; borrar la fila cierra la sesión (logout real).
 model Session {
   id        String   @id

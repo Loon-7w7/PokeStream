@@ -84,12 +84,13 @@ Unos 6 €/mes y sin cambios de código.
 1. Comprar el dominio (**sin "Pokémon" ni "Poké"** en el nombre, por marcas) y crear el VPS con Ubuntu.
 2. En el DNS del dominio, un registro `A` apuntando a la IP del VPS.
 3. Instalar Docker en el VPS y clonar el repo.
-4. Crear el `.env`: secretos, `APP_URL=https://tudominio.com`, `LEGACY_OWNER_EMAIL`, `CONTACT_EMAIL`, claves de R2.
+4. Crear el `.env`: secretos, `APP_URL=https://tudominio.com`, `ADMIN_EMAILS`, `LEGACY_OWNER_EMAIL`, `CONTACT_EMAIL`, claves de R2.
 5. En Google Cloud Console:
    - URI de redirección: `https://tudominio.com/api/auth/google/callback`.
    - Pantalla de consentimiento: añadir `https://tudominio.com/privacidad` y pasar la app a **En producción** (en modo prueba solo entran los usuarios de prueba).
 6. `docker compose -f docker-compose.prod.yml up -d`.
 7. **Entrar primero con Google** con el correo de `LEGACY_OWNER_EMAIL` para quedarte con el equipo antiguo.
+8. En **/admin**, invitar a los correos de la beta (o abrir el registro).
 
 ### Actualizar la app
 

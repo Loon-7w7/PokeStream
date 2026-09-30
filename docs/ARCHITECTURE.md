@@ -46,7 +46,9 @@ Nunca al revés: `core` no importa features 🔒, el dominio no importa servicio
 auth ◄── run ◄── team ◄── showdown
           ▲       ▲
           └─ widget ┘
-dashboard ──► (todas)   ← feature de composición; nadie depende de ella
+dashboard ──► (todas menos admin)   ← feature de composición; nadie depende de ella
+admin ──► auth, run, widget          ← /admin: acceso de la beta cerrada
+tour, legal                          ← sin dependencias
 ```
 
 Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependencia nueva es una decisión: se edita ahí a propósito.
@@ -110,5 +112,5 @@ Definido en `scripts/check-architecture.mjs` (`ALLOWED`). Añadir una dependenci
 | Nueva opción visual del widget | migración (columna en Run) → `WidgetConfig` + `toWidgetConfig` → zod en `run/actions.ts` → `WidgetSettings` → `Widget` |
 | Nuevo layout (torre, burbujas) | componente en `features/widget/ui/`, elegir por `config.layout` |
 | Nueva capacidad (p. ej. comandos de chat) | `features/chat/` con su `index.ts`; declarar sus dependencias en `ALLOWED` |
-| Multiusuario | Hecho: `Run.ownerEmail`, `getCurrentRun()` desde la sesión, registro abierto en `features/auth` |
+| Multiusuario | Hecho: `Run.ownerEmail`, `getCurrentRun()` desde la sesión, acceso (invitados/abierto/bloqueos) en `features/auth`, gestionado en `/admin` |
 | Varias instancias | implementar `RealtimeBus` con Redis en `core/realtime` |

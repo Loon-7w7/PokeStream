@@ -28,3 +28,19 @@ describe("modo Nuzlocke", () => {
     expect((await service.getRunOverview()).info.nuzlocke).toBe(false);
   });
 });
+
+describe("usuario bloqueado por el admin", () => {
+  it("su token de widget deja de valer y vuelve al desbloquearlo", async () => {
+    const auth = await import("@/features/auth");
+    const repo = await import("./run.repository");
+    const run = await repo.findOrCreateRunForOwner("streamer@x.com", { newToken: () => "B".repeat(24), claimOrphan: false });
+
+    expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBe(run.id);
+    await auth.setBlocked("streamer@x.com", true);
+    expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBeNull();
+    expect(await service.getWidgetAccess(run.id)).toEqual({ token: run.widgetToken, blocked: true });
+
+    await auth.setBlocked("streamer@x.com", false);
+    expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBe(run.id);
+  });
+});

@@ -16,7 +16,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 ## Reglas que no se rompen
 1. Capas: `app → features → core`. `core` no importa features. El dominio (`features/*/domain`) es puro.
 2. Otra feature solo por su API pública: `@/features/x` (servidor) · `/actions` · `/ui` · `/types`. Dentro de la feature, rutas relativas.
-3. Grafo permitido: `auth ← run ← team ← showdown`; `widget → run, team`; `dashboard → todas`. Cambiarlo = editar `ALLOWED` en `scripts/check-architecture.mjs`.
+3. Grafo permitido: `auth ← run ← team ← showdown`; `widget → run, team`; `admin → auth, run, widget`; `dashboard → todas` (menos admin); `tour` y `legal` sin dependencias. Cambiarlo = editar `ALLOWED` en `scripts/check-architecture.mjs`.
 4. Solo `core/pokedex` importa `@pkmn/*`. Solo `*.repository.ts` y `unit-of-work.ts` importan `@/core/db`.
 5. Todo archivo de servidor empieza con `import "server-only";`.
 6. Toda escritura va por `mutateRun(({ db, runId, nuzlocke }) => …)`: auth + transacción + evento SSE. Repos reciben `db` como último parámetro.
@@ -29,13 +29,13 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | Ruta | Qué hay |
 |---|---|
 | `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run, sin nivel: todo es nivel 50), `Storage` (caja y muertos como texto Showdown), `Session` (sesiones del panel) |
-| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/auth/google` (OAuth), `/api/dex` |
+| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/admin`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/auth/google` (OAuth), `/api/dex` |
 | `src/core/pokedex/server.ts` | `getSpeciesInfo`, `resolveId`, `describeSet`, `buildDexIndex` |
 | `src/core/pokedex/showdown.ts` | `formatShowdown` / `parseShowdown` |
 | `src/core/pokedex/sprites.ts` | URLs de sprites `{SPRITES_BASE_URL}{ani|gen5|dex}[-shiny]/{spriteId}` |
 | `src/core/{action,result}.ts` | `runAction`, `ActionResult`, `DomainError`, `fail` |
 | `src/core/ui/` | `ActionProvider`/`useAction`, `Modal`, `ConfirmDialog` (confirmar acciones importantes), `Sprite`, `TypeBadge`, `Logo`, `Kbd`, `cx`, colores de tipos |
-| `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), registro abierto (`ALLOWED_EMAILS` opcional = beta cerrada, `BLOCKED_EMAILS`); `requireUser` (correo o `UNAUTHORIZED`), `isSignedIn`, `LOCAL_USER` sin login, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
+| `features/auth` | Login con Google (`arctic`, `server/google.ts`), sesión: cookie firmada HMAC con id (`server/session.ts`) + tabla `Session` (`server/session.repository.ts`, logout la borra), acceso: `canEnter` (`domain/access.ts`: admin siempre, bloqueado nunca, si no registro abierto o invitado) + tablas `Access`/`AccessSettings` (`server/access.*`), `ADMIN_EMAILS` en .env, `requireAdmin`/`isCurrentUserAdmin`, `isEmailBlocked` (run corta el widget del bloqueado); `requireUser` (correo o `UNAUTHORIZED`), `isSignedIn`, `LOCAL_USER` sin login, `startGoogleLogin`/`finishGoogleLogin` (rutas `/api/auth/google[/callback]`), `logout`, `LoginCard` |
 | `features/run` | `getCurrentRun` (único punto de identidad: sesión → run por `ownerEmail`; la run sin dueño la reclama `LEGACY_OWNER_EMAIL`), `mutateRun` (ctx incluye `nuzlocke`), info (`resetRunInfo`; el Nuzlocke no se desactiva salvo con Nueva partida), config del widget, `RunHeader` (acepta `actions`) |
 | `features/team/domain/slot.ts` | Reglas: `placeSpecies`, `evolve`, `applyPatch` (debilitado + regla Nuzlocke), `destinationOf` (caja o muertos), `validateOrder`; `storage.ts`: `stash`, `takeFromBox` |
 | `features/team/server/` | `team.service.ts` (casos de uso), `slot.repository.ts`, `storage.repository.ts` |
@@ -43,6 +43,8 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `features/showdown` | Exportar el equipo · importar a la caja (`addSetsToBox`); `ShowdownBox` (botones + diálogo de importar), `CopySlotButton` |
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots y contador, posiciones en `Run.slotPositions`/`deathCounterPosition`), contador de muertes (`deaths`: solo en Nuzlocke, `countDeaths` en `team/domain/storage.ts`) |
 | `features/legal` | `PrivacyPolicy` (ruta pública `/privacidad`) |
+| `features/admin` | `/admin` (solo admins, si no 404): modo de registro, invitar, bloquear (corta panel y widget en vivo), cerrar sesiones, usuarios y estadísticas (`buildAdminUsers` en `domain/users.ts`) |
+| `features/tour` | Tour guiado con React Joyride (`GuidedTour`, pasos en `ui/steps.tsx` → apuntan a `data-tour="…"`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |
 

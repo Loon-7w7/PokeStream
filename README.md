@@ -64,7 +64,7 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 ## Login con Google
 1. En [Google Cloud Console](https://console.cloud.google.com/apis/credentials) crea un **ID de cliente OAuth** de tipo *Aplicación web* (si te lo pide, configura antes la pantalla de consentimiento como *Externa* y añade tus correos como usuarios de prueba).
 2. En *URI de redireccionamiento autorizados* añade `http://localhost:3000/api/auth/google/callback` y, si lo publicas, `https://tu-dominio/api/auth/google/callback`.
-3. Copia el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, genera `SESSION_SECRET` y pon tu correo en `LEGACY_OWNER_EMAIL` para conservar el equipo que ya tenías. El registro queda abierto a cualquier cuenta de Google.
+3. Copia el ID y el secreto a `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, genera `SESSION_SECRET` y pon tu correo en `ADMIN_EMAILS` y en `LEGACY_OWNER_EMAIL` para conservar el equipo que ya tenías. Por defecto solo entran cuentas invitadas: invita correos o abre el registro desde **/admin**.
 
 ## Variables de entorno
 | Variable | Descripción |
@@ -74,8 +74,7 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Cliente OAuth de Google. Vacío = sin login: en producción el servidor no arranca salvo con `ALLOW_NO_AUTH=true` |
 | `ALLOW_NO_AUTH` | `true` permite producción sin login (solo en tu red local) |
 | `SESSION_SECRET` | Firma de la cookie de sesión (32+ caracteres). Cambiarla cierra todas las sesiones; cerrar sesión borra la sesión de la BD |
-| `ALLOWED_EMAILS` | Opcional. Beta cerrada: solo esos correos pueden entrar. Vacío = registro abierto |
-| `BLOCKED_EMAILS` | Opcional. Correos que no pueden entrar |
+| `ADMIN_EMAILS` | Administradores (separados por comas). Entran siempre y gestionan el acceso en `/admin`: registro abierto o solo invitados, invitaciones y bloqueos |
 | `LEGACY_OWNER_EMAIL` | Correo que se queda con el equipo creado antes del multiusuario |
 | `KOFI_URL` | Enlace de donación (`https://`). Vacío = sin botón |
 | `CONTACT_EMAIL` | Contacto que aparece en `/privacidad` |

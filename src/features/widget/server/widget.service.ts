@@ -1,7 +1,7 @@
 import "server-only";
-import { findRunIdByWidgetToken, getWidgetRun, getWidgetToken, subscribeToRun } from "@/features/run";
+import { findRunIdByWidgetToken, getWidgetAccess, getWidgetRun, subscribeToRun } from "@/features/run";
 import { countDeathsByRunId, getTeamByRunId } from "@/features/team";
-import { WIDGET_CONTRACT_VERSION, type WidgetEvent, type WidgetState } from "../types";
+import { WIDGET_CONTRACT_VERSION, type StreamClient, type WidgetEvent, type WidgetState } from "../types";
 
 /** Read model del widget: compone config (run) + equipo y muertes (team) en el contrato público. */
 export async function getWidgetState(runId: string): Promise<WidgetState | null> {
@@ -35,7 +35,7 @@ const PING_MS = 25_000;
 /** Conexiones SSE abiertas por run (OBS + pestañas del panel). Más allá se responde 429. */
 const MAX_STREAMS_PER_RUN = 20;
 
-type Listener = { token: string; send: (e: WidgetEvent) => void; close: () => void };
+type Listener = { token: string; client: StreamClient; send: (e: WidgetEvent) => void; close: () => void };
 
 /**
  * Un "hub" por run: ante un cambio lee el estado UNA vez y lo reparte a todas las conexiones,
@@ -66,11 +66,11 @@ class RunHub {
     if (this.running) return void (this.pending = true);
     this.running = true;
     try {
-      const [token, state] = await Promise.all([getWidgetToken(this.runId), getWidgetState(this.runId)]);
+      const [access, state] = await Promise.all([getWidgetAccess(this.runId), getWidgetState(this.runId)]);
       for (const l of [...this.listeners]) {
-        if (l.token !== token) {
-          // Token regenerado: esta conexión ya no tiene acceso
-          l.send({ event: "revoked", data: {} });
+        if (l.token !== access?.token || access.blocked) {
+          // Token regenerado o dueño bloqueado: esta conexión ya no tiene acceso
+          l.send({ event: access?.blocked && l.token === access.token ? "blocked" : "revoked", data: {} });
           l.close();
         } else if (state) l.send({ event: "state", data: state });
       }
@@ -89,11 +89,21 @@ class RunHub {
 const g = globalThis as unknown as { widgetHubs?: Map<string, RunHub> };
 const hubs = (g.widgetHubs ??= new Map<string, RunHub>());
 
+/** Widgets de OBS conectados ahora mismo, por run (sin contar pestañas del panel). */
+export function countObsConnections(): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const [runId, hub] of hubs) {
+    const n = [...hub.listeners].filter((l) => l.client === "obs").length;
+    if (n) counts.set(runId, n);
+  }
+  return counts;
+}
+
 /**
  * Stream SSE: envía el estado al conectar y en cada cambio de la run.
  * Si el token se regenera, envía "revoked" y cierra.
  */
-export async function createWidgetStream(token: string, signal: AbortSignal): Promise<Response | null> {
+export async function createWidgetStream(token: string, signal: AbortSignal, client: StreamClient = "obs"): Promise<Response | null> {
   const runId = await findRunIdByWidgetToken(token);
   if (!runId) return null;
   if ((hubs.get(runId)?.listeners.size ?? 0) >= MAX_STREAMS_PER_RUN) {
@@ -120,7 +130,7 @@ export async function createWidgetStream(token: string, signal: AbortSignal): Pr
 
       const hub = hubs.get(runId) ?? new RunHub(runId);
       hubs.set(runId, hub);
-      const listener: Listener = { token, send, close };
+      const listener: Listener = { token, client, send, close };
       hub.add(listener);
       const ping = setInterval(() => write(": ping\n\n"), PING_MS); // evita que OBS/proxies corten
       cleanup = () => {

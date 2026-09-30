@@ -6,7 +6,7 @@ import type { LoginError } from "../types";
 
 const MESSAGES: Record<LoginError, string> = {
   invalid_state: "El inicio de sesión caducó. Vuelve a entrar con Google.",
-  not_allowed: "Esa cuenta de Google no tiene acceso. Prueba con otra cuenta.",
+  not_allowed: "Esa cuenta de Google no tiene acceso. Ahora mismo solo pueden entrar cuentas invitadas.",
   google_failed: "No se pudo conectar con Google. Revisa tu conexión y vuelve a intentarlo.",
 };
 

@@ -40,8 +40,12 @@ export function findOrCreateRunForOwner(ownerEmail: string, opts: OwnerRunOption
 
 export const findRunById = (id: string, db: Db = prisma) => db.run.findUnique({ where: { id } });
 
-export const findRunIdByToken = async (widgetToken: string, db: Db = prisma) =>
-  (await db.run.findUnique({ where: { widgetToken }, select: { id: true } }))?.id ?? null;
+export const findRunByToken = (widgetToken: string, db: Db = prisma) =>
+  db.run.findUnique({ where: { widgetToken }, select: { id: true, ownerEmail: true } });
+
+/** Runs con dueño (una por usuario registrado), para /admin. */
+export const listOwnedRuns = (db: Db = prisma) =>
+  db.run.findMany({ where: { ownerEmail: { not: null } }, select: { id: true, ownerEmail: true, createdAt: true }, orderBy: { createdAt: "desc" } });
 
 export const updateRunInfo = (id: string, info: Partial<RunInfo>, db: Db = prisma) =>
   db.run.update({ where: { id }, data: info });

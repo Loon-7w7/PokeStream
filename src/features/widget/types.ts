@@ -24,5 +24,14 @@ export interface WidgetState {
   deaths: number | null;
 }
 
-/** Eventos SSE de /api/stream/[token]. */
-export type WidgetEvent = { event: "state"; data: WidgetState } | { event: "revoked"; data: Record<string, never> };
+/**
+ * Eventos SSE de /api/stream/[token].
+ * `revoked`: el token se regeneró (no vuelve). `blocked`: el admin bloqueó al dueño (vuelve al desbloquearlo).
+ */
+export type WidgetEvent =
+  | { event: "state"; data: WidgetState }
+  | { event: "revoked"; data: Record<string, never> }
+  | { event: "blocked"; data: Record<string, never> };
+
+/** Quién abre el stream: el widget en OBS o una pestaña del panel (sincronización). */
+export type StreamClient = "obs" | "panel";

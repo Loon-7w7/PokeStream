@@ -1,3 +1,3 @@
 import "server-only";
 /** API pública (servidor) del widget. */
-export { getWidgetState, getWidgetStateByToken, createWidgetStream } from "./server/widget.service";
+export { getWidgetState, getWidgetStateByToken, createWidgetStream, countObsConnections } from "./server/widget.service";

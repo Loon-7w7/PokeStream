@@ -42,6 +42,13 @@ export interface WidgetConfig {
 
 export type WidgetConfigPatch = Partial<WidgetConfig>;
 
+/** Usuario registrado (dueño de una run), para /admin. */
+export interface RunOwner {
+  runId: string;
+  email: string;
+  createdAt: string; // ISO
+}
+
 export interface RunOverview {
   id: string;
   info: RunInfo;

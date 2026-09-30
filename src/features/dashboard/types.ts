@@ -6,6 +6,8 @@ import type { WidgetSlot } from "@/features/widget/types";
 export interface DashboardState {
   appName: string;
   authEnabled: boolean;
+  /** Muestra el acceso a /admin en la cabecera. */
+  isAdmin: boolean;
   spritesBase: string;
   /** Enlace de donación ("" = sin botón). */
   kofiUrl: string;

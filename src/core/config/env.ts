@@ -25,10 +25,8 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().trim().default(""),
   GOOGLE_CLIENT_SECRET: z.string().trim().default(""),
   SESSION_SECRET: z.string().default(""),
-  /** Beta cerrada: si tiene correos, solo esos pueden registrarse. Vacío = registro abierto. */
-  ALLOWED_EMAILS: emailList,
-  /** Correos que no pueden entrar (abuso). */
-  BLOCKED_EMAILS: emailList,
+  /** Administradores: entran siempre y gestionan invitaciones y bloqueos en /admin. */
+  ADMIN_EMAILS: emailList,
   /** Dueño de la run creada antes del multiusuario: la recibe al entrar por primera vez. */
   LEGACY_OWNER_EMAIL: z.string().trim().toLowerCase().default(""),
   /** Enlace de donación. Vacío = sin botón. */
