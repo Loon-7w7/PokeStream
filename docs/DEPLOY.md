@@ -5,6 +5,8 @@ Guía de despliegue recomendada para la versión multiusuario (gratis, con donac
 > Estado: decisión tomada, archivos de despliegue **pendientes** (`docker-compose.prod.yml`, `Caddyfile`, `litestream.yml`).
 > Los precios son aproximados; revísalos antes de contratar.
 
+> Para una **beta rápida desde una laptop Windows** (sin VPS): `docs/DEPLOY-LAPTOP.md`.
+
 ## Por qué no sirve cualquier hosting
 
 La arquitectura de la app impone estas condiciones:

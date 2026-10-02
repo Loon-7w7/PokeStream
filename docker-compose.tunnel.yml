@@ -1,0 +1,25 @@
+# Publica la app por internet con Cloudflare Tunnel (sin abrir puertos del router).
+# Se usa junto al compose base; lo más cómodo es el script: .\scripts\laptop.ps1 (ver docs/DEPLOY-LAPTOP.md)
+#
+#   URL temporal (*.trycloudflare.com, cambia al recrear el túnel):
+#     docker compose -f docker-compose.yml -f docker-compose.tunnel.yml --profile quick up -d --build
+#   Dominio fijo (TUNNEL_TOKEN en .env; el hostname público apunta a http://app:3000 en Cloudflare):
+#     docker compose -f docker-compose.yml -f docker-compose.tunnel.yml --profile fixed up -d --build
+services:
+  tunnel-quick:
+    image: cloudflare/cloudflared:latest
+    container_name: partyhud-tunnel-quick
+    profiles: ["quick"]
+    command: tunnel --no-autoupdate --url http://app:3000
+    restart: unless-stopped
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: partyhud-tunnel
+    profiles: ["fixed"]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      - app
+    restart: unless-stopped

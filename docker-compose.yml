@@ -3,7 +3,8 @@ services:
     build: .
     container_name: partyhud
     ports:
-      - "3000:3000"
+      # Por defecto solo esta máquina. APP_BIND=0.0.0.0 en .env lo abre a tu red local (OBS en otra PC).
+      - "${APP_BIND:-127.0.0.1}:3000:3000"
     env_file:
       - path: .env
         required: false

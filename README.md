@@ -36,7 +36,7 @@ Abre http://localhost:3000 y entra con tu cuenta de Google (o directo si el logi
 2. En OBS: **Fuentes → + → Navegador**. Pega la URL, ancho `1920`, alto `1080`.
 3. Listo. Cada cambio en el panel aparece en OBS al instante.
 
-Si OBS está en otra PC de tu red, cambia `localhost` por la IP de la máquina que corre Docker (ej. `http://192.168.1.50:3000/widget/...`).
+Si OBS está en otra PC de tu red, pon `APP_BIND="0.0.0.0"` en `.env` (por defecto Docker solo escucha en esta máquina) y cambia `localhost` por la IP de la máquina que corre Docker (ej. `http://192.168.1.50:3000/widget/...`).
 
 Si la URL se filtra, usa **Regenerar URL** en el panel: la anterior deja de funcionar.
 
@@ -80,9 +80,12 @@ Monolito modular por features con dominio puro y reglas verificadas por ESLint y
 | `CONTACT_EMAIL` | Contacto que aparece en `/privacidad` |
 | `DATABASE_URL` | SQLite local (`file:`; Docker la fija en `file:/app/data/app.db`) o libsql remoto (`libsql:`/`https:`/`wss:`; `http:`/`ws:` solo en localhost) |
 | `DATABASE_AUTH_TOKEN` | Token de la BD remota. Nunca dentro de la URL |
+| `APP_BIND` | Docker: interfaz del puerto 3000. `127.0.0.1` (defecto) solo esta máquina; `0.0.0.0` toda tu red |
+| `TUNNEL_TOKEN` | Token de Cloudflare Tunnel con dominio fijo. Vacío = URL temporal (ver `docs/DEPLOY-LAPTOP.md`) |
 | `SPRITES_BASE_URL` | Base de los sprites (`https://play.pokemonshowdown.com/sprites/`) |
 
 ## Publicarlo más adelante
+- **Versión de prueba desde una laptop Windows** (Docker + Cloudflare Tunnel, sin abrir puertos): `docs/DEPLOY-LAPTOP.md`.
 - Pon un proxy con HTTPS delante (Caddy o Nginx). Con Nginx, desactiva el buffering en `/api/stream/` (la app ya envía `X-Accel-Buffering: no`).
 - Añade `{APP_URL}/api/auth/google/callback` como URI de redirección en tu cliente OAuth de Google (uno por cada URL: local y producción).
 - Para varios usuarios harán falta login con Twitch/Kick y una run por usuario (ver "Pendiente" en `CLAUDE.md`).

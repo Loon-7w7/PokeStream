@@ -55,7 +55,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 - **Feature nueva**: carpeta con `index.ts`/`actions.ts`/`types.ts`/`ui/`; declarar dependencias en `ALLOWED`.
 
 ## Comandos
-`npm run dev` · `npm run check` · `npm test` · `npm run db:migrate -- --name x` · `docker compose up -d --build`
+`npm run dev` · `npm run check` · `npm test` · `npm run db:migrate -- --name x` · `docker compose up -d --build` · prueba pública desde Windows: `scripts/laptop.ps1` (`docs/DEPLOY-LAPTOP.md`)
 
 ## Pendiente
 Layouts torre/burbujas · vista pública para el chat · comandos `!equipo` Twitch/Kick · borrar cuenta desde el panel · límite de peticiones por usuario · bus con Redis si hay varias instancias · nombres en español.
