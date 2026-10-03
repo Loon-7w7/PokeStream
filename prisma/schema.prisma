@@ -96,3 +96,19 @@ model Session {
 
   @@index([email])
 }
+
+// Preregistro a la beta (postulantes sin acceso aún). Dueña: feature waitlist.
+// Aprobar = invitar el correo en Access; la fila queda como historial.
+model BetaApplication {
+  email      String    @id // correo de Google con el que entrará (normalizado)
+  name       String? // nombre o apodo
+  platform   String // twitch | kick | youtube | other
+  channel    String // usuario del canal (o URL si platform = other)
+  message    String? // por qué quiere entrar / cómo nos conoció
+  status     String    @default("pending") // pending | approved | rejected
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status, createdAt])
+}

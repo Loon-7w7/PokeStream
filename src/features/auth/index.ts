@@ -33,6 +33,11 @@ async function isAllowed(email: string): Promise<boolean> {
   return canEnter({ isAdmin: isAdminEmail(email), entry, registrationOpen });
 }
 
+/** ¿Puede entrar cualquier cuenta de Google? (sin login, uso local, se considera abierto). Público: no exige admin. */
+export async function isRegistrationOpen(): Promise<boolean> {
+  return !isAuthEnabled() || access.getRegistrationOpen();
+}
+
 /** ¿El admin bloqueó este correo? Un bloqueado pierde el panel y su widget. */
 export async function isEmailBlocked(email: string): Promise<boolean> {
   return !isAdminEmail(email) && Boolean((await access.findAccess(email))?.blocked);

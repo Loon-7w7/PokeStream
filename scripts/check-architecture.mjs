@@ -15,7 +15,8 @@ const ALLOWED = {
   dashboard: ["auth", "run", "team", "showdown", "widget", "tour"],
   legal: [],
   tour: [],
-  admin: ["auth", "run", "team", "widget"],
+  admin: ["auth", "run", "team", "widget", "waitlist"],
+  waitlist: ["auth"],
 };
 
 /** Archivos que deben declarar `import "server-only"`. */

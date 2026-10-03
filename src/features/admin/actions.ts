@@ -23,6 +23,10 @@ export async function setBlocked(email: string, blocked: boolean) {
   return runAction(() => service.setBlocked(Email.parse(email), z.boolean().parse(blocked)), { refresh: true });
 }
 
+export async function reviewApplication(email: string, to: "approved" | "rejected") {
+  return runAction(() => service.reviewApplication(Email.parse(email), z.enum(["approved", "rejected"]).parse(to)), { refresh: true });
+}
+
 export async function endSessionsOf(email: string) {
   return runAction(() => service.endSessionsOf(Email.parse(email)), { refresh: true });
 }

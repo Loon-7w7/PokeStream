@@ -3,6 +3,7 @@ import { env } from "@/core/config/env";
 import * as auth from "@/features/auth";
 import { listRunOwners, notifyOwnerRun } from "@/features/run";
 import { countDeathsByRuns, getSpeciesUsage } from "@/features/team";
+import { listApplications, reviewApplication as review } from "@/features/waitlist";
 import { countObsConnections } from "@/features/widget";
 import { buildFunnel, modeSummary, weeklySignups } from "../domain/charts";
 import { buildAdminUsers } from "../domain/users";
@@ -16,7 +17,7 @@ export async function getAdminState(): Promise<AdminState> {
   const access = await auth.getAccessOverview(); // exige admin: va primero
   const owners = await listRunOwners();
   const nuzlockeRuns = owners.filter((o) => o.nuzlocke).map((o) => o.runId);
-  const [topSpecies, deaths] = await Promise.all([getSpeciesUsage(TOP_SPECIES), countDeathsByRuns(nuzlockeRuns)]);
+  const [topSpecies, deaths, applications] = await Promise.all([getSpeciesUsage(TOP_SPECIES), countDeathsByRuns(nuzlockeRuns), listApplications()]);
   const { users, stats } = buildAdminUsers({ access, owners, obs: countObsConnections() });
   const now = new Date();
   return {
@@ -24,6 +25,7 @@ export async function getAdminState(): Promise<AdminState> {
     spritesBase: env.SPRITES_BASE_URL,
     registrationOpen: access.registrationOpen,
     users,
+    applications,
     stats,
     charts: {
       funnel: buildFunnel(users, now),
@@ -55,3 +57,6 @@ export async function setBlocked(email: string, blocked: boolean) {
 }
 
 export const endSessionsOf = (email: string) => auth.endSessionsOf(email);
+
+/** Aprobar invita el correo (ya puede entrar con Google); rechazar solo lo marca. */
+export const reviewApplication = (email: string, to: "approved" | "rejected") => review(email, to);

@@ -16,7 +16,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 ## Reglas que no se rompen
 1. Capas: `app → features → core`. `core` no importa features. El dominio (`features/*/domain`) es puro.
 2. Otra feature solo por su API pública: `@/features/x` (servidor) · `/actions` · `/ui` · `/types`. Dentro de la feature, rutas relativas.
-3. Grafo permitido: `auth ← run ← team ← showdown`; `widget → run, team`; `admin → auth, run, widget`; `dashboard → todas` (menos admin); `tour` y `legal` sin dependencias. Cambiarlo = editar `ALLOWED` en `scripts/check-architecture.mjs`.
+3. Grafo permitido: `auth ← run ← team ← showdown`; `widget → run, team`; `admin → auth, run, widget, waitlist`; `waitlist → auth`; `dashboard → todas` (menos admin); `tour` y `legal` sin dependencias. Cambiarlo = editar `ALLOWED` en `scripts/check-architecture.mjs`.
 4. Solo `core/pokedex` importa `@pkmn/*`. Solo `*.repository.ts` y `unit-of-work.ts` importan `@/core/db`.
 5. Todo archivo de servidor empieza con `import "server-only";`.
 6. Toda escritura va por `mutateRun(({ db, runId, nuzlocke }) => …)`: auth + transacción + evento SSE. Repos reciben `db` como último parámetro.
@@ -28,8 +28,8 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 ## Mapa
 | Ruta | Qué hay |
 |---|---|
-| `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run, sin nivel: todo es nivel 50), `Storage` (caja y muertos como texto Showdown), `Session` (sesiones del panel) |
-| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/admin`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/auth/google` (OAuth), `/api/dex` |
+| `prisma/schema.prisma` | `Run` (info + config del widget + token), `Slot` (6 por run, sin nivel: todo es nivel 50), `Storage` (caja y muertos como texto Showdown), `Session` (sesiones del panel), `BetaApplication` (preregistro) |
+| `src/app/` | Rutas delgadas: `/` panel, `/login`, `/beta` (preregistro), `/admin`, `/widget/[token]`, `/api/stream/[token]` (SSE), `/api/auth/google` (OAuth), `/api/dex` |
 | `src/core/pokedex/server.ts` | `getSpeciesInfo`, `resolveId`, `describeSet`, `buildDexIndex` |
 | `src/core/pokedex/showdown.ts` | `formatShowdown` / `parseShowdown` |
 | `src/core/pokedex/sprites.ts` | URLs de sprites `{SPRITES_BASE_URL}{ani|gen5|dex}[-shiny]/{spriteId}` |
@@ -44,6 +44,7 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 | `features/widget` | Contrato `WidgetState` (v4), stream SSE, `Widget` (OBS; layouts fila/libre), `WidgetSettings` (panel), `PositionEditor` (arrastrar slots y contador, posiciones en `Run.slotPositions`/`deathCounterPosition`), contador de muertes (`deaths`: solo en Nuzlocke, `countDeaths` en `team/domain/storage.ts`) |
 | `features/legal` | `PrivacyPolicy` (ruta pública `/privacidad`) |
 | `features/admin` | `/admin` (solo admins, si no 404): modo de registro, invitar, bloquear (corta panel y widget en vivo), cerrar sesiones, usuarios y estadísticas (`buildAdminUsers` en `domain/users.ts`); gráficas con Recharts (`AdminCharts`): embudo, registros por semana, top Pokémon y Nuzlocke/muertes (agregados en `domain/charts.ts`) |
+| `features/waitlist` | Preregistro a la beta: `/beta` pública solo con registro cerrado (`isWaitlistOpen`; abierto → redirige a `/login`), `BetaSignupForm` (correo, nombre, plataforma + canal, mensaje; campo trampa + límite por IP en `server/client-key.ts`), reglas en `domain/application.ts`; aprobar = invitar (`reviewApplication`, solo admin), pestaña Postulantes de `/admin` (`ApplicationsTable`) |
 | `features/tour` | Tour guiado con React Joyride (`useGuidedTour` → `{ start, Tour }`, pasos en `ui/steps.tsx` → apuntan a `data-tour="…"`) |
 | `features/dashboard` | Composición del panel (`getDashboardState`, `Dashboard`, sincronización entre pestañas, panel lateral plegable, `ProfileMenu`: cuenta, admin, tour y salir) |
 | `test/db.ts` | SQLite temporal con migraciones para tests de integración |

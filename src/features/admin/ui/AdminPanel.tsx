@@ -16,6 +16,7 @@ import {
   UserMinus,
   UserPlus,
   Users,
+  UserRoundPlus,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -28,11 +29,14 @@ import { Logo } from "@/core/ui/Logo";
 import * as A from "../actions";
 import type { AdminState, AdminUser, AdminUserStatus } from "../types";
 import { AdminCharts } from "./AdminCharts";
+import { ApplicationsTable } from "./ApplicationsTable";
+import { IconButton, LocalDate } from "./parts";
 
-type Tab = "access" | "charts";
+type Tab = "access" | "applications" | "charts";
 
 const TABS: [Tab, string, React.ComponentType<{ className?: string }>][] = [
   ["access", "Usuarios y acceso", Users],
+  ["applications", "Postulantes", UserRoundPlus],
   ["charts", "Estadísticas", ChartColumn],
 ];
 
@@ -61,8 +65,12 @@ export function AdminPanel({ state }: { state: AdminState }) {
         <main className="mx-auto grid max-w-[1200px] gap-5 px-4 py-5">
           <ErrorBanner />
           <Stats state={state} />
-          <Tabs tab={tab} onChange={setTab} />
-          {tab === "access" ? (
+          <Tabs tab={tab} onChange={setTab} pending={state.applications.filter((a) => a.status === "pending").length} />
+          {tab === "applications" ? (
+            <div role="tabpanel" aria-label="Postulantes">
+              <ApplicationsTable applications={state.applications} registrationOpen={state.registrationOpen} />
+            </div>
+          ) : tab === "access" ? (
             <div role="tabpanel" aria-label="Usuarios y acceso" className="grid gap-5">
               <div className="grid gap-5 md:grid-cols-2">
                 <RegistrationMode open={state.registrationOpen} />
@@ -81,9 +89,9 @@ export function AdminPanel({ state }: { state: AdminState }) {
   );
 }
 
-function Tabs({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
+function Tabs({ tab, onChange, pending }: { tab: Tab; onChange: (t: Tab) => void; pending: number }) {
   return (
-    <div role="tablist" aria-label="Secciones" className="grid w-full max-w-md grid-cols-2 gap-1 rounded-lg border border-line bg-panel p-1 text-sm">
+    <div role="tablist" aria-label="Secciones" className="grid w-full max-w-xl grid-cols-3 gap-1 rounded-lg border border-line bg-panel p-1 text-sm">
       {TABS.map(([value, label, Icon]) => (
         <button
           key={value}
@@ -95,8 +103,13 @@ function Tabs({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
             tab === value ? "bg-accent font-semibold text-bg" : "text-muted hover:text-text",
           )}
         >
-          <Icon className="size-4" />
-          {label}
+          <Icon className="size-4 shrink-0" />
+          <span className="truncate">{label}</span>
+          {value === "applications" && pending > 0 && (
+            <span className={cx("rounded-full px-1.5 font-mono text-xs", tab === value ? "bg-bg/25" : "bg-warn/20 text-warn")} aria-label={`${pending} pendientes`}>
+              {pending}
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -359,34 +372,5 @@ function UserTable({ users }: { users: AdminUser[] }) {
         </ConfirmDialog>
       )}
     </section>
-  );
-}
-
-function IconButton(props: { label: string; Icon: React.ComponentType<{ className?: string }>; onClick: () => void; disabled?: boolean; danger?: boolean }) {
-  const { Icon } = props;
-  return (
-    <button
-      onClick={props.onClick}
-      disabled={props.disabled}
-      title={props.label}
-      aria-label={props.label}
-      className={cx(
-        "rounded-md border border-line p-1.5 text-muted disabled:opacity-50",
-        props.danger ? "hover:border-bad hover:text-bad" : "hover:border-accent hover:text-accent",
-      )}
-    >
-      <Icon className="size-4" />
-    </button>
-  );
-}
-
-/** Fecha en la zona horaria del navegador (el servidor puede estar en otra: se ignora el desajuste). */
-function LocalDate({ iso, withTime = false }: { iso: string | null; withTime?: boolean }) {
-  if (!iso) return <span>—</span>;
-  const text = new Date(iso).toLocaleString("es", withTime ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" });
-  return (
-    <time dateTime={iso} suppressHydrationWarning>
-      {text}
-    </time>
   );
 }

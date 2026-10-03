@@ -35,6 +35,10 @@ export function PrivacyPolicy({ appName, appUrl, contactEmail, kofiUrl }: Props)
               opciones visuales que tú escribes.
             </li>
             <li>
+              <b>Si te apuntas a la beta</b> (preregistro): el correo, el nombre o apodo, la plataforma y el canal de
+              streaming y el mensaje que escribas, para decidir a quién dar acceso. Puedes pedir que los borremos.
+            </li>
+            <li>
               <b>Tu sesión</b>: un identificador aleatorio con fecha de caducidad (30 días) para no pedirte entrar cada vez.
             </li>
           </ul>

@@ -1,4 +1,5 @@
 // Tipos públicos de la feature admin (gestión de la beta cerrada). Puros.
+import type { BetaApplication } from "@/features/waitlist/types";
 
 /**
  * admin: ADMIN_EMAILS · active: registrado y con acceso · invited: invitado que aún no ha entrado
@@ -42,6 +43,8 @@ export interface AdminState {
   spritesBase: string;
   registrationOpen: boolean;
   users: AdminUser[];
+  /** Preregistro a la beta, de la más reciente a la más antigua. */
+  applications: BetaApplication[];
   stats: AdminStats;
   charts: AdminCharts;
 }
