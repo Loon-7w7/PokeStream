@@ -42,6 +42,13 @@ export interface WidgetConfig {
 
 export type WidgetConfigPatch = Partial<WidgetConfig>;
 
+/** Lo que el widget lee de la run. `access` solo si se pidió (token vigente y dueño bloqueado). */
+export interface WidgetRun {
+  config: WidgetConfig;
+  nuzlocke: boolean;
+  access: { token: string; blocked: boolean } | null;
+}
+
 /** Usuario registrado (dueño de una run), para /admin. */
 export interface RunOwner {
   runId: string;

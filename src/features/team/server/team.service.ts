@@ -36,14 +36,10 @@ export async function getTeamView(): Promise<SlotView[]> {
   return (await slots.listSlots(run.id)).map(toView);
 }
 
-export async function getTeamByRunId(runId: string): Promise<SlotView[]> {
-  return (await slots.listSlots(runId)).map(toView);
-}
-
-/** Muertes de la run (Muertos + debilitados del equipo), para el contador del widget. */
-export async function countDeathsByRunId(runId: string): Promise<number> {
-  const [team, stored] = await Promise.all([slots.listSlots(runId), storage.getStorage(runId)]);
-  return box.countDeaths(team, stored);
+/** Equipo y muertes (Muertos + debilitados) de una run en una sola tanda de consultas. Para el widget. */
+export async function getTeamWithDeaths(runId: string): Promise<{ team: SlotView[]; deaths: number }> {
+  const [team, graveyard] = await Promise.all([slots.listSlots(runId), storage.countGraveyardByRun([runId])]);
+  return { team: team.map(toView), deaths: box.countDeaths(team, graveyard.get(runId) ?? 0) };
 }
 
 /** Especies más usadas en todos los equipos, con nombre y sprite. Para /admin (la autorización la pone quien compone). */

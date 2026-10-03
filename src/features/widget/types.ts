@@ -27,11 +27,18 @@ export interface WidgetState {
 /**
  * Eventos SSE de /api/stream/[token].
  * `revoked`: el token se regeneró (no vuelve). `blocked`: el admin bloqueó al dueño (vuelve al desbloquearlo).
+ * `changed`: solo al panel; avisa de que la run cambió en `at` (ms) sin mandar el estado.
  */
 export type WidgetEvent =
   | { event: "state"; data: WidgetState }
+  | { event: "changed"; data: { at: number } }
   | { event: "revoked"; data: Record<string, never> }
   | { event: "blocked"; data: Record<string, never> };
 
-/** Quién abre el stream: el widget en OBS o una pestaña del panel (sincronización). */
-export type StreamClient = "obs" | "panel";
+/**
+ * Quién abre el stream: el widget en OBS, la vista previa del panel (recibe el estado, pero no
+ * cuenta como OBS) o una pestaña del panel (solo recibe `changed` para sincronizarse).
+ */
+export type StreamClient = "obs" | "preview" | "panel";
+
+export const STREAM_CLIENTS: readonly StreamClient[] = ["obs", "preview", "panel"];

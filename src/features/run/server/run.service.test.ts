@@ -38,7 +38,7 @@ describe("usuario bloqueado por el admin", () => {
     expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBe(run.id);
     await auth.setBlocked("streamer@x.com", true);
     expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBeNull();
-    expect(await service.getWidgetAccess(run.id)).toEqual({ token: run.widgetToken, blocked: true });
+    expect((await service.getWidgetRun(run.id, { withAccess: true }))?.access).toEqual({ token: run.widgetToken, blocked: true });
 
     await auth.setBlocked("streamer@x.com", false);
     expect(await service.findRunIdByWidgetToken(run.widgetToken)).toBe(run.id);

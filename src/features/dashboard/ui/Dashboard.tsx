@@ -22,7 +22,7 @@ export function Dashboard({ state }: { state: DashboardState }) {
 
   return (
     <ActionProvider>
-      <LiveSync token={state.run.widgetToken} />
+      <LiveSync token={state.run.widgetToken} renderedAt={state.renderedAt} />
       <div className="flex min-h-screen flex-col overflow-x-clip bg-bg text-text">
         <RunHeader
           info={state.run.info}
@@ -105,20 +105,40 @@ function ErrorBanner() {
   );
 }
 
-/** Escucha el stream del widget: si otra pestaña/dispositivo cambia algo, refresca el panel. */
-function LiveSync({ token }: { token: string }) {
+/**
+ * Escucha el stream de la run: si otra pestaña/dispositivo cambió algo después de este render, refresca.
+ * Los cambios propios ya llegan con el refresh() de la acción: mientras una acción está en curso se
+ * espera a su render, que suele incluir ese cambio, y así no se relee el panel dos veces.
+ */
+function LiveSync({ token, renderedAt }: { token: string; renderedAt: number }) {
   const router = useRouter();
+  const { pending } = useAction();
+  const [changedAt, setChangedAt] = useState(0);
+  const stale = !pending && changedAt > renderedAt;
+
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
+    if (!stale) return;
+    const timer = setTimeout(() => router.refresh(), 150); // agrupa ráfagas de cambios
+    return () => clearTimeout(timer);
+  }, [stale, changedAt, router]);
+
+  useEffect(() => {
+    let lost = false;
     const es = new EventSource(`/api/stream/${encodeURIComponent(token)}?client=panel`);
-    es.addEventListener("state", () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => router.refresh(), 150); // agrupa ráfagas de cambios
+    es.addEventListener("changed", (e) => {
+      const { at } = JSON.parse((e as MessageEvent).data) as { at: number };
+      // Tras perder la conexión no se sabe qué cambió mientras tanto: refresca sin comparar
+      if (lost) router.refresh();
+      lost = false;
+      setChangedAt((prev) => Math.max(prev, at));
     });
-    return () => {
-      clearTimeout(timer);
-      es.close();
-    };
+    es.onerror = () => void (lost = true);
+    // Token regenerado o cuenta bloqueada: el render nuevo trae el token vigente (o redirige)
+    const refresh = () => router.refresh();
+    es.addEventListener("revoked", refresh);
+    es.addEventListener("blocked", refresh);
+    return () => es.close();
   }, [token, router]);
+
   return null;
 }

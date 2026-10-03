@@ -11,7 +11,8 @@ import type { WidgetSlot, WidgetState } from "../types";
 /** Espera antes de reconectar si el servidor rechazó el stream. */
 const RETRY_MS = 30_000;
 
-export function Widget({ token, initial, spritesBase }: { token: string; initial: WidgetState; spritesBase: string }) {
+/** `preview`: vista previa del panel (iframe); su conexión no cuenta como widget de OBS. */
+export function Widget({ token, preview, initial, spritesBase }: { token: string; preview: boolean; initial: WidgetState; spritesBase: string }) {
   const [state, setState] = useState<WidgetState | null>(initial);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export function Widget({ token, initial, spritesBase }: { token: string; initial
     let retry: ReturnType<typeof setTimeout>;
     let stopped = false;
     const connect = () => {
-      es = new EventSource(`/api/stream/${encodeURIComponent(token)}`);
+      es = new EventSource(`/api/stream/${encodeURIComponent(token)}${preview ? "?client=preview" : ""}`);
       es.addEventListener("state", (e) => setState(JSON.parse((e as MessageEvent).data)));
       // Bloqueado: en blanco; al desbloquear, el reintento de abajo lo recupera
       es.addEventListener("blocked", () => setState(null));
@@ -39,7 +40,7 @@ export function Widget({ token, initial, spritesBase }: { token: string; initial
       clearTimeout(retry);
       es.close();
     };
-  }, [token]);
+  }, [token, preview]);
 
   if (!state) return null;
   return (

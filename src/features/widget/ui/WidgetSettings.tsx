@@ -1,6 +1,6 @@
 "use client";
 // Panel: URL para OBS, vista previa en vivo y ajustes visuales del widget.
-import { Check, Copy, KeyRound, Move, Rows3, Skull, TriangleAlert, type LucideIcon } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, KeyRound, Move, Rows3, Skull, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore } from "react";
 import { useAction } from "@/core/ui/actions";
 import { ConfirmDialog } from "@/core/ui/ConfirmDialog";
@@ -76,7 +76,7 @@ export function WidgetSettings(props: {
         OBS → Fuente → <b>Navegador</b> → pega la URL · Ancho 1920 · Alto 1080.
       </p>
 
-      <Preview url={origin ? url : ""} />
+      <Preview url={origin ? `${url}?preview=1` : ""} />
 
       <div data-tour="widget-options" className="mt-4 grid gap-2">
         <div className="grid grid-cols-2 gap-1 rounded-lg border border-line bg-bg p-1 text-sm" role="radiogroup" aria-label="Distribución">
@@ -181,7 +181,64 @@ export function WidgetSettings(props: {
 }
 
 /** Iframe 1920x1080 escalado al ancho del panel. */
+// La vista previa carga el widget entero (iframe + SSE + sprites animados): oculta por defecto.
+// Se recuerda por navegador en localStorage; es una comodidad, no estado del servidor.
+const PREVIEW_KEY = "partyhud:widget-preview";
+const previewListeners = new Set<() => void>();
+
+function readPreviewShown() {
+  try {
+    return localStorage.getItem(PREVIEW_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setPreviewShown(shown: boolean) {
+  try {
+    localStorage.setItem(PREVIEW_KEY, shown ? "1" : "0");
+  } catch {}
+  previewListeners.forEach((l) => l());
+}
+
+function subscribePreview(onChange: () => void) {
+  previewListeners.add(onChange);
+  window.addEventListener("storage", onChange); // otras pestañas
+  return () => {
+    previewListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
 function Preview({ url }: { url: string }) {
+  const shown = useSyncExternalStore(subscribePreview, readPreviewShown, () => false);
+  if (!shown) {
+    return (
+      <button
+        onClick={() => setPreviewShown(true)}
+        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line py-2 text-sm text-muted hover:border-accent hover:text-accent"
+      >
+        <Eye className="size-4" />
+        Mostrar vista previa
+      </button>
+    );
+  }
+  return (
+    <div className="relative mt-3">
+      <PreviewFrame url={url} />
+      <button
+        onClick={() => setPreviewShown(false)}
+        title="Ocultar la vista previa (ahorra recursos)"
+        aria-label="Ocultar la vista previa"
+        className="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-md border border-line bg-panel/90 text-muted hover:border-accent hover:text-accent"
+      >
+        <EyeOff className="size-4" />
+      </button>
+    </div>
+  );
+}
+
+function PreviewFrame({ url }: { url: string }) {
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.18);
   useEffect(() => {
@@ -192,7 +249,7 @@ function Preview({ url }: { url: string }) {
     return () => ro.disconnect();
   }, []);
   return (
-    <div ref={box} className="checkerboard relative mt-3 aspect-video overflow-hidden rounded-lg border border-line">
+    <div ref={box} className="checkerboard relative aspect-video overflow-hidden rounded-lg border border-line">
       {url && (
         <iframe
           src={url}

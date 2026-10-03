@@ -6,9 +6,9 @@ import { Widget } from "@/features/widget/ui";
 
 export const dynamic = "force-dynamic";
 
-export default async function WidgetPage({ params }: { params: Promise<{ token: string }> }) {
-  const { token } = await params;
+export default async function WidgetPage(props: { params: Promise<{ token: string }>; searchParams: Promise<{ preview?: string }> }) {
+  const [{ token }, { preview }] = await Promise.all([props.params, props.searchParams]);
   const state = await getWidgetStateByToken(token);
   if (!state) notFound();
-  return <Widget token={token} initial={state} spritesBase={env.SPRITES_BASE_URL} />;
+  return <Widget token={token} preview={preview === "1"} initial={state} spritesBase={env.SPRITES_BASE_URL} />;
 }

@@ -6,7 +6,6 @@ export {
   getRunOverview,
   getWidgetRun,
   findRunIdByWidgetToken,
-  getWidgetAccess,
   listRunOwners,
   notifyOwnerRun,
   subscribeToRun,

@@ -1,17 +1,22 @@
 import "server-only";
-import { findRunIdByWidgetToken, getWidgetAccess, getWidgetRun, subscribeToRun } from "@/features/run";
-import { countDeathsByRunId, getTeamByRunId } from "@/features/team";
+import { findRunIdByWidgetToken, getWidgetRun, subscribeToRun } from "@/features/run";
+import type { WidgetRun } from "@/features/run/types";
+import { getTeamWithDeaths } from "@/features/team";
+import type { SlotView } from "@/features/team/types";
 import { WIDGET_CONTRACT_VERSION, type StreamClient, type WidgetEvent, type WidgetState } from "../types";
 
 /** Read model del widget: compone config (run) + equipo y muertes (team) en el contrato público. */
 export async function getWidgetState(runId: string): Promise<WidgetState | null> {
-  const [run, team] = await Promise.all([getWidgetRun(runId), getTeamByRunId(runId)]);
-  if (!run) return null;
-  const { config, nuzlocke } = run;
+  // Run, slots y Muertos en paralelo: una sola tanda de consultas
+  const [run, team] = await Promise.all([getWidgetRun(runId), getTeamWithDeaths(runId)]);
+  return run && toWidgetState(run, team);
+}
+
+function toWidgetState({ config, nuzlocke }: WidgetRun, { team, deaths }: { team: SlotView[]; deaths: number }): WidgetState {
   return {
     v: WIDGET_CONTRACT_VERSION,
     config,
-    deaths: nuzlocke && config.deathCounter ? await countDeathsByRunId(runId) : null,
+    deaths: nuzlocke && config.deathCounter ? deaths : null,
     slots: team
       .filter((s) => s.species)
       .map((s) => ({
@@ -32,6 +37,8 @@ export async function getWidgetStateByToken(token: string): Promise<WidgetState 
 }
 
 const PING_MS = 25_000;
+/** Si falla la lectura tras un cambio, se reintenta: si no, el widget se quedaría con el estado viejo. */
+const RETRY_MS = 5_000;
 /** Conexiones SSE abiertas por run (OBS + pestañas del panel). Más allá se responde 429. */
 const MAX_STREAMS_PER_RUN = 20;
 
@@ -40,10 +47,14 @@ type Listener = { token: string; client: StreamClient; send: (e: WidgetEvent) =>
 /**
  * Un "hub" por run: ante un cambio lee el estado UNA vez y lo reparte a todas las conexiones,
  * en lugar de consultar la BD por cada una. Si llegan cambios mientras lee, repite una sola vez.
+ * Las pestañas del panel solo reciben `changed` (no usan el estado; se refrescan con su propio render).
  */
 class RunHub {
   readonly listeners = new Set<Listener>();
+  /** Momento (ms) del último cambio publicado; el panel lo compara con el de su último render. */
+  lastChangeAt = 0;
   private unsubscribe: (() => void) | null = null;
+  private retry: ReturnType<typeof setTimeout> | null = null;
   private running = false;
   private pending = false;
 
@@ -51,7 +62,10 @@ class RunHub {
 
   add(l: Listener) {
     this.listeners.add(l);
-    this.unsubscribe ??= subscribeToRun(this.runId, () => void this.broadcast());
+    this.unsubscribe ??= subscribeToRun(this.runId, () => {
+      this.lastChangeAt = Date.now();
+      void this.broadcast();
+    });
   }
 
   remove(l: Listener) {
@@ -59,23 +73,35 @@ class RunHub {
     if (this.listeners.size) return;
     this.unsubscribe?.();
     this.unsubscribe = null;
+    if (this.retry) clearTimeout(this.retry);
+    this.retry = null;
     hubs.delete(this.runId);
   }
 
   private async broadcast() {
     if (this.running) return void (this.pending = true);
     this.running = true;
+    const at = this.lastChangeAt;
     try {
-      const [access, state] = await Promise.all([getWidgetAccess(this.runId), getWidgetState(this.runId)]);
+      // Con solo pestañas del panel no hace falta leer el equipo: basta con el acceso
+      const needsState = [...this.listeners].some((l) => l.client !== "panel");
+      const [run, team] = await Promise.all([getWidgetRun(this.runId, { withAccess: true }), needsState ? getTeamWithDeaths(this.runId) : null]);
+      const access = run?.access;
+      const state = run && team && toWidgetState(run, team);
       for (const l of [...this.listeners]) {
         if (l.token !== access?.token || access.blocked) {
           // Token regenerado o dueño bloqueado: esta conexión ya no tiene acceso
           l.send({ event: access?.blocked && l.token === access.token ? "blocked" : "revoked", data: {} });
           l.close();
-        } else if (state) l.send({ event: "state", data: state });
+        } else if (l.client === "panel") l.send({ event: "changed", data: { at } });
+        else if (state) l.send({ event: "state", data: state });
       }
     } catch (e) {
       console.error("[widget] Falló el envío del estado", e);
+      this.retry ??= setTimeout(() => {
+        this.retry = null;
+        void this.broadcast();
+      }, RETRY_MS);
     } finally {
       this.running = false;
       if (this.pending) {
@@ -109,7 +135,8 @@ export async function createWidgetStream(token: string, signal: AbortSignal, cli
   if ((hubs.get(runId)?.listeners.size ?? 0) >= MAX_STREAMS_PER_RUN) {
     return new Response("Demasiadas conexiones abiertas", { status: 429, headers: { "Retry-After": "30" } });
   }
-  const initial = await getWidgetState(runId);
+  // El panel ya trae el estado en su render: solo necesita saber si hubo cambios desde entonces
+  const initial = client === "panel" ? null : await getWidgetState(runId);
 
   const encoder = new TextEncoder();
   let cleanup = () => {};
@@ -140,7 +167,8 @@ export async function createWidgetStream(token: string, signal: AbortSignal, cli
       signal.addEventListener("abort", close);
 
       write("retry: 2000\n\n");
-      if (initial) send({ event: "state", data: initial });
+      if (client === "panel") send({ event: "changed", data: { at: hub.lastChangeAt } });
+      else if (initial) send({ event: "state", data: initial });
     },
     cancel() {
       cleanup();

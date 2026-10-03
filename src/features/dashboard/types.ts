@@ -4,6 +4,8 @@ import type { WidgetSlot } from "@/features/widget/types";
 
 /** Todo lo que el panel necesita en una sola lectura. */
 export interface DashboardState {
+  /** Instante (ms, reloj del servidor) en que empezó la lectura. LiveSync lo compara con los cambios. */
+  renderedAt: number;
   appName: string;
   /** Correo de la sesión; null sin login (uso local). */
   userEmail: string | null;

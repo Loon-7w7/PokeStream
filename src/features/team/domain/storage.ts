@@ -27,8 +27,8 @@ export function takeFromBox(storage: StoredSets, index: number): { set: PokemonS
 }
 
 /** Muertes de la partida: los de Muertos más los debilitados que siguen en el equipo. */
-export const countDeaths = (team: SlotData[], storage: StoredSets): number =>
-  storage.graveyard.length + team.filter((s) => s.species && s.fainted).length;
+export const countDeaths = (team: SlotData[], graveyardSize: number): number =>
+  graveyardSize + team.filter((s) => s.species && s.fainted).length;
 
 /** Borra una entrada de la caja o de Muertos. */
 export function removeStored(storage: StoredSets, list: keyof StoredSets, index: number): StoredSets {

@@ -14,9 +14,12 @@ import type { DashboardState } from "./types";
 export async function getDashboardState(): Promise<DashboardState> {
   // El proxy solo ve que hay cookie; aquí se verifica la firma y el correo.
   if (!(await isSignedIn())) redirect("/login");
+  // Antes de leer: un cambio publicado después de este instante puede no estar en este render
+  const renderedAt = Date.now();
   const run = await getRunOverview();
   const [team, storage, widget] = await Promise.all([getTeamView(), getStorageView(), getWidgetState(run.id)]);
   return {
+    renderedAt,
     appName: env.APP_NAME,
     userEmail: isAuthEnabled() ? await getCurrentUser() : null,
     isAdmin: await isCurrentUserAdmin(),

@@ -2,7 +2,7 @@ import "server-only";
 import { isEmailBlocked } from "@/features/auth";
 import { bus, channels } from "@/core/realtime/bus";
 import { fail } from "@/core/result";
-import type { RunInfo, RunOverview, RunOwner, WidgetConfig, WidgetConfigPatch } from "../types";
+import type { RunInfo, RunOverview, RunOwner, WidgetConfigPatch, WidgetRun } from "../types";
 import { getCurrentRun, isWidgetTokenFormat, newWidgetToken } from "./current-run";
 import * as runs from "./run.repository";
 import { mutateRun, type MutationContext } from "./unit-of-work";
@@ -28,12 +28,6 @@ export async function findRunIdByWidgetToken(token: string): Promise<string | nu
   return run && !(await isOwnerBlocked(run.ownerEmail)) ? run.id : null;
 }
 
-/** Token vigente de la run y si su dueño está bloqueado (null si la run no existe). */
-export async function getWidgetAccess(runId: string): Promise<{ token: string; blocked: boolean } | null> {
-  const run = await runs.findRunById(runId);
-  return run && { token: run.widgetToken, blocked: await isOwnerBlocked(run.ownerEmail) };
-}
-
 /** Usuarios con run (registrados). Para /admin: la autorización la pone quien compone. */
 export async function listRunOwners(): Promise<RunOwner[]> {
   return (await runs.listOwnedRuns()).map((r) => ({ runId: r.id, email: r.ownerEmail!, createdAt: r.createdAt.toISOString(), nuzlocke: r.nuzlocke }));
@@ -45,10 +39,15 @@ export async function notifyOwnerRun(email: string) {
   if (run) bus.publish(channels.run(run.id));
 }
 
-/** Lo que el widget necesita de la run: su config y si está en Nuzlocke (null si no existe). */
-export async function getWidgetRun(runId: string): Promise<{ config: WidgetConfig; nuzlocke: boolean } | null> {
+/**
+ * Lo que el widget necesita de la run: su config y si está en Nuzlocke (null si no existe).
+ * Con `withAccess`, también el token vigente y si su dueño está bloqueado (una consulta más).
+ */
+export async function getWidgetRun(runId: string, opts: { withAccess?: boolean } = {}): Promise<WidgetRun | null> {
   const run = await runs.findRunById(runId);
-  return run ? { config: runs.toWidgetConfig(run), nuzlocke: run.nuzlocke } : null;
+  if (!run) return null;
+  const access = opts.withAccess ? { token: run.widgetToken, blocked: await isOwnerBlocked(run.ownerEmail) } : null;
+  return { config: runs.toWidgetConfig(run), nuzlocke: run.nuzlocke, access };
 }
 
 export const subscribeToRun = (runId: string, onChange: () => void) => bus.subscribe(channels.run(runId), onChange);
