@@ -7,7 +7,7 @@ import { ZodError } from "zod";
  */
 export type ActionResult<T = void> = { ok: true; data: T } | { ok: false; error: string; code: ErrorCode };
 
-export type ErrorCode = "UNAUTHORIZED" | "NOT_FOUND" | "INVALID" | "CONFLICT" | "INTERNAL";
+export type ErrorCode = "UNAUTHORIZED" | "NOT_FOUND" | "INVALID" | "CONFLICT" | "RATE_LIMITED" | "INTERNAL";
 
 /** Error esperado de negocio. El mensaje se muestra tal cual al usuario (en español). */
 export class DomainError extends Error {

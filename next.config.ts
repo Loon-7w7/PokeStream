@@ -1,5 +1,23 @@
 import type { NextConfig } from "next";
 
+// CSP sin nonce: Next mete scripts inline, así que 'unsafe-inline' sigue; lo que gana es cortar
+// scripts, conexiones, formularios e iframes de otros orígenes. 'unsafe-eval' solo en desarrollo (React).
+// Sprites: cualquier https (SPRITES_BASE_URL se configura en tiempo de ejecución).
+const csp = (frameAncestors: string) =>
+  [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-src 'self'",
+    "form-action 'self'",
+    `frame-ancestors ${frameAncestors}`,
+    "base-uri 'self'",
+    "object-src 'none'",
+  ].join("; ");
+
 const nextConfig: NextConfig = {
   // Build autocontenido para Docker (.next/standalone)
   output: "standalone",
@@ -12,12 +30,15 @@ const nextConfig: NextConfig = {
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "no-referrer" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      // El navegador la ignora por http (local); con https (túnel/dominio) fuerza https un año.
+      // Sin includeSubDomains: no afecta a otros subdominios del dominio del usuario.
+      { key: "Strict-Transport-Security", value: "max-age=31536000" },
     ];
     return [
       {
         source: "/:path((?!widget/).*)",
         headers: [
-          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+          { key: "Content-Security-Policy", value: csp("'none'") },
           { key: "X-Frame-Options", value: "DENY" },
           ...common,
         ],
@@ -25,7 +46,7 @@ const nextConfig: NextConfig = {
       {
         source: "/widget/:token",
         headers: [
-          { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'" },
+          { key: "Content-Security-Policy", value: csp("'self'") },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           ...common,
         ],

@@ -58,4 +58,4 @@ Next 16: `middleware` → `src/proxy.ts`; `params`/`cookies()` son async; `refre
 `npm run dev` · `npm run check` · `npm test` · `npm run db:migrate -- --name x` · `docker compose up -d --build` · prueba pública desde Windows: `scripts/laptop.ps1` (`docs/DEPLOY-LAPTOP.md`)
 
 ## Pendiente
-Layouts torre/burbujas · vista pública para el chat · comandos `!equipo` Twitch/Kick · borrar cuenta desde el panel · límite de peticiones por usuario · bus con Redis si hay varias instancias · nombres en español.
+Layouts torre/burbujas · vista pública para el chat · comandos `!equipo` Twitch/Kick · borrar cuenta desde el panel · CSP con nonce (hoy `'unsafe-inline'`) · bus y límite de peticiones (`core/rate-limit.ts`, en `mutateRun`) con Redis si hay varias instancias · nombres en español.
